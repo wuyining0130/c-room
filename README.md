@@ -9,9 +9,9 @@ C-ROOM 是一套开箱即用的 Claude Code Skill 集合。安装后，你只需
 在 Claude Code 中输入以下任意一句话即可触发安装：
 
 ```
-帮我安装 c-room skill
-把 https://github.com/wuyining0130/c-room 里的 skills 安装到本地
-从 github.com/wuyining0130/c-room 克隆 skills 目录到 ~/.claude/skills/
+帮我安装 c-room skill（首次安装）
+更新 https://github.com/wuyining0130/c-room 所有 skill 到本地（更新到最新版）
+把 github.com/wuyining0130/c-room 里的 skills 克隆到 ~/.claude/skills/
 ```
 
 或者直接用脚本：
