@@ -1,0 +1,6 @@
+prompt-test/
+skill-test/
+.DS_Store
+.claude/
+install.sh
+uninstall.sh

@@ -1,0 +1,16 @@
+{
+  "name": "@wuyining0130/c-room",
+  "version": "1.0.0",
+  "description": "AI-assisted requirement-to-development workflow skills for Claude Code",
+  "bin": {
+    "c-room": "bin/install.js"
+  },
+  "keywords": [
+    "claude-code",
+    "skills",
+    "ai",
+    "prd",
+    "code-gen"
+  ],
+  "license": "MIT"
+}
