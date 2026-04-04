@@ -43,14 +43,14 @@ cp -r coding-knowledge-init ~/.claude/skills/
 
 ```
 模块      子模块          服务                                    git仓库                                                     服务描述
-合同      对外接入        credit.support.contract_srv             https://git.xxx.com/.../contract-srv                        合同对外服务
-                          credit.support.loan_contract_srv        https://git.xxx.com/.../loan_contract_srv                   合同对外服务(放款)
-                          credit.support.e_contract_qry           https://git.xxx.com/.../e_contract_qry                     合同查询服务
-          内部收单        credit.support.e_contract_srv           https://git.xxx.com/.../e_contract_srv                      合同配置&内部收单服务
-                          credit.support.e_contract_task          https://git.xxx.com/.../e_contract_task                     合同生成调用链路服务
-          外部签章/支撑   credit.contract.e_seal_srv              https://git.xxx.com/.../e-seal-srv                          合同签章服务
-                          credit.generic.paperless_proxy          https://git.xxx.com/.../ElectronicContracts                 cfca代理服务
-          运营平台        credit.asset_support.atm_api            https://git.xxx.com/.../api.atm.win.oa.com                 资产运营系统后台(含合同管理)
+交易      订单处理        trade.order_srv                         https://git.xxx.com/.../order-srv                           订单核心服务
+                          trade.pay_srv                           https://git.xxx.com/.../pay_srv                             支付服务
+                          trade.order_qry                         https://git.xxx.com/.../order_qry                           订单查询服务
+          履约            trade.fulfill_srv                       https://git.xxx.com/.../fulfill_srv                         履约&配置服务
+                          trade.fulfill_task                      https://git.xxx.com/.../fulfill_task                        履约异步任务服务
+          渠道对接        trade.channel_srv                       https://git.xxx.com/.../channel-srv                         渠道对接服务
+                          trade.notify_proxy                      https://git.xxx.com/.../notify_proxy                        通知代理服务
+          运营平台        trade.ops_api                           https://git.xxx.com/.../ops-api                             运营系统后台(含交易管理)
 ```
 
 关键信息：
@@ -69,12 +69,12 @@ cp -r coding-knowledge-init ~/.claude/skills/
 业务模块和仓库信息如下：
 
 模块    子模块        服务                              git仓库                                       服务描述
-合同    对外接入      contract_srv                      https://git.xxx.com/.../contract-srv           合同对外服务
-                      loan_contract_srv                 https://git.xxx.com/.../loan_contract_srv      合同对外服务(放款)
-        内部收单      e_contract_srv                    https://git.xxx.com/.../e_contract_srv          合同配置&内部收单服务
-                      e_contract_task                   https://git.xxx.com/.../e_contract_task         合同生成调用链路服务
-        外部签章      e_seal_srv                        https://git.xxx.com/.../e-seal-srv              合同签章服务
-        运营平台      atm_api                           https://git.xxx.com/.../api.atm.win.oa.com     资产运营系统后台(含合同管理)
+交易    订单处理      order_srv                         https://git.xxx.com/.../order-srv               订单核心服务
+                      pay_srv                           https://git.xxx.com/.../pay_srv                 支付服务
+        履约          fulfill_srv                       https://git.xxx.com/.../fulfill_srv              履约&配置服务
+                      fulfill_task                      https://git.xxx.com/.../fulfill_task             履约异步任务服务
+        渠道对接      channel_srv                       https://git.xxx.com/.../channel-srv              渠道对接服务
+        运营平台      ops_api                           https://git.xxx.com/.../ops-api                  运营系统后台(含交易管理)
 ```
 
 如果仓库已 clone 到本地，也可以直接给本地路径，不需要 git 地址。
@@ -92,14 +92,14 @@ cp -r coding-knowledge-init ~/.claude/skills/
 **之前**（没有知识库）：
 ```
 你：帮我改一下合同签章的逻辑
-AI：请问签章相关的代码在哪个文件？（开始盲目搜索...）
+AI：请问支付相关的代码在哪个文件？（开始盲目搜索...）
 ```
 
 **之后**（有知识库）：
 ```
-你：帮我改一下合同签章的逻辑
-AI：（自动读取 INDEX.md → 场景路由表定位到 e_seal_srv →
-     读 symbols.md 找到 SealController.startSeal():78 →
+你：帮我改一下支付回调的逻辑
+AI：（自动读取 INDEX.md → 场景路由表定位到 pay_srv →
+     读 symbols.md 找到 PayCallbackController.handleCallback():78 →
      读 call-chains.md 了解完整链路 → 精准修改）
 ```
 

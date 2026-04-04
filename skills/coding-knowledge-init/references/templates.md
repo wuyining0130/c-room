@@ -115,7 +115,7 @@
 
 ### 常见误解
 - {如"虽然有 PaymentController，但只是代收合同签章费用的入口，真正的支付逻辑在 payment_srv"}
-- {如"contract_srv 和 e_contract_srv 名称相似，但前者负责对外接入，后者负责内部收单"}
+- {如"order_srv 和 fulfill_srv 名称相似，但前者负责订单处理，后者负责履约"}
 
 ## 关键依赖
 （列出核心中间件和第三方 SDK）

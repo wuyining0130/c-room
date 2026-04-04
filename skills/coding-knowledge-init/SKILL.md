@@ -87,12 +87,12 @@ coding-knowledge/
 用户通常以表格形式提供信息，格式类似：
 ```
 模块    子模块        服务/仓库名              服务描述
-合同    对外接入      contract_srv             合同对外服务
-                      loan_contract_srv        合同对外服务(放款)
-        内部收单      e_contract_srv           合同配置&内部收单服务
-                      e_contract_task          合同生成调用链路服务
-        外部签章      e_seal_srv               合同签章服务
-        运营平台      atm_api                  资产运营系统后台(含合同管理)
+交易    订单处理      order_srv                订单核心服务
+                      pay_srv                  支付服务
+        履约          fulfill_srv              履约&配置服务
+                      fulfill_task             履约异步任务服务
+        外部对接      channel_srv              渠道对接服务
+        运营平台      ops_api                  运营系统后台(含交易管理)
 ```
 
 解析规则：
@@ -118,23 +118,23 @@ coding-knowledge/
 将信息保存到 `coding-knowledge/config.yaml`：
 
 ```yaml
-business_name: "合同业务"
+business_name: "交易业务"
 domains:
-  - name: "对外接入"
+  - name: "订单处理"
     repos:
-      - path: "/path/to/contract_srv"
+      - path: "/path/to/order_srv"
         type: backend
-        service_name: "credit.support.contract_srv"
-        description: "合同对外服务"
-      - path: "/path/to/loan_contract_srv"
+        service_name: "trade.order_srv"
+        description: "订单核心服务"
+      - path: "/path/to/pay_srv"
         type: backend
-        service_name: "credit.support.loan_contract_srv"
-        description: "合同对外服务(放款)"
-  - name: "内部收单"
+        service_name: "trade.pay_srv"
+        description: "支付服务"
+  - name: "履约"
     repos:
-      - path: "/path/to/e_contract_srv"
+      - path: "/path/to/fulfill_srv"
         type: backend
-        description: "合同配置&内部收单服务"
+        description: "履约&配置服务"
 shared_repos:
   - path: "/path/to/common-lib"
     type: library
@@ -156,9 +156,9 @@ phase_1:
   scan_script_done: true
   batch_index: 2           # 当前处理到第几批（大规模场景）
   repos:
-    contract_srv: {status: completed, docs: [".scan-snapshot.md", "architecture.md", "symbols.md", "codebase-index.md", "database-schema.md", "call-chains.md"]}
-    e_contract_srv: {status: in_progress, docs: [".scan-snapshot.md"]}
-    loan_contract_srv: {status: pending}
+    order_srv: {status: completed, docs: [".scan-snapshot.md", "architecture.md", "symbols.md", "codebase-index.md", "database-schema.md", "call-chains.md"]}
+    fulfill_srv: {status: in_progress, docs: [".scan-snapshot.md"]}
+    pay_srv: {status: pending}
 phase_2: {status: pending, user_answers: {}}
 phase_3: {status: pending, repos: {}, business_done: false, infra_done: false}
 phase_4: {status: pending}
@@ -253,9 +253,9 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 ## 仓库列表
 {逐个列出，格式如下}
-- 仓库名: contract_srv
-  scan-result.json 路径: /path/to/coding-knowledge/scan-data/contract_srv.scan-result.json
-  输出目录: /path/to/coding-knowledge/repos/contract_srv/
+- 仓库名: order_srv
+  scan-result.json 路径: /path/to/coding-knowledge/scan-data/order_srv.scan-result.json
+  输出目录: /path/to/coding-knowledge/repos/order_srv/
   技术栈: java
 
 ## 生成顺序（严格按此顺序，每个仓库内部也按此顺序）
@@ -422,9 +422,9 @@ error: {如失败则填写原因}
 
 | 仓库 | symbols 覆盖率 | call-chains 完整性 | 综合评级 | 影响 |
 |------|---------------|-------------------|---------|------|
-| contract_srv | C:95% S:88% R:75% E:90% | 跨服务:92% MQ:100% | ✅ 合格 | — |
-| e_contract_srv | C:80% S:60% R:50% E:70% | 跨服务:70% MQ:80% | ⚠️ 不足 | tech-design 定位精度下降 |
-| loan_srv | C:100% S:90% R:80% E:85% | 跨服务:100% MQ:100% | ✅ 优秀 | — |
+| order_srv | C:95% S:88% R:75% E:90% | 跨服务:92% MQ:100% | ✅ 合格 | — |
+| fulfill_srv | C:80% S:60% R:50% E:70% | 跨服务:70% MQ:80% | ⚠️ 不足 | tech-design 定位精度下降 |
+| pay_srv | C:100% S:90% R:80% E:85% | 跨服务:100% MQ:100% | ✅ 优秀 | — |
 
 > C=Controller S=Service R=Repository E=Entity
 
@@ -611,7 +611,7 @@ git diff --name-only {上次生成的 commit hash} HEAD
 
 ### Example 1: 多仓库完整初始化
 
-**用户输入**："我负责合同业务，下面有4个子模块，代码仓库都在 /path/repos/ 下面，帮我初始化编码知识库"
+**用户输入**："我负责交易业务，下面有4个子模块，代码仓库都在 /path/repos/ 下面，帮我初始化编码知识库"
 
 **Skill 行为**：
 1. Phase 0: 用户已提供信息，生成 config.yaml
@@ -626,7 +626,7 @@ git diff --name-only {上次生成的 commit hash} HEAD
 
 ### Example 2: 单仓库快速初始化
 
-**用户输入**："帮我分析 ~/projects/contract_srv，建立编码知识库"
+**用户输入**："帮我分析 ~/projects/order_srv，建立编码知识库"
 
 **Skill 行为**：
 1. 简化 Phase 0: 确认业务名称和仓库类型
