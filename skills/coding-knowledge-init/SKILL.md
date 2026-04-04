@@ -522,26 +522,25 @@ error: {如失败则填写原因}
 ```markdown
 ## AI Coding 知识库
 
-本项目配置了分层编码知识库，位于 `coding-knowledge/` 目录。编码时按以下规则使用：
+本项目配置了分层编码知识库，位于 `coding-knowledge/` 目录。
 
-### 自动加载规则
+### 使用方式
 
-1. **接到编码任务时**：先读 `coding-knowledge/INDEX.md` 了解知识库结构
-2. **需要理解业务背景时**：读 `coding-knowledge/business/INDEX.md`，再读对应域的 overview.md
-3. **定位代码时**：读 `coding-knowledge/repos/INDEX.md` 的场景路由表，找到目标仓库后读其 `symbols.md`
-4. **涉及数据库时**：读对应仓库的 `database-schema.md`
-5. **理解调用链时**：读对应仓库的 `call-chains.md`
-6. **技术选型/规范问题时**：读 `coding-knowledge/infra/INDEX.md`
+**先读 `coding-knowledge/INDEX.md` 的意图路由表**，按你的具体意图直达所需文件。一个任务通常只需 2-3 个文件，不要全量加载。
 
-### 知识库文件说明
+典型路径：
+- **明确的修改任务** → INDEX.md 意图路由表 → 目标仓库的 `symbols.md` → `call-chains.md`
+- **写 PRD** → `business/prd-reference/existing-features.md` + `business-flows.md`
+- **探索性任务**（可行性分析、影响评估、问题排查）→ INDEX.md "需要广泛理解时" 章节，按场景加载更多文件
+- **意图不在路由表里** → INDEX.md "路由表匹配不上时" 章节，通过关键词搜索或业务域缩小范围
 
-- `coding-knowledge/repos/{repo}/.scan-snapshot.md` — 扫描中间数据，日常编码无需读取
-- `coding-knowledge/repos/{repo}/symbols.md` — 精确代码定位，包含类名、方法签名、文件路径和行号
-- `coding-knowledge/business/glossary.md` — 业务术语标准定义，编码时使用标准术语
+### 不要读的文件
+
+- `repos/{repo}/.scan-snapshot.md` — 扫描中间数据，日常编码无需读取
 
 ### 注意事项
 
-- 知识库基于代码扫描生成，行号可能因代码变更而偏移，以实际代码为准
+- 行号可能因代码变更而偏移，以实际代码为准
 - 置信度标记为 `low` 的信息来自推断，使用前建议验证
 - 如需更新知识库，运行 coding-knowledge-init skill
 ```

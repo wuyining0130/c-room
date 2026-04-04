@@ -21,23 +21,27 @@ PRD 撰写中最常见的坑：拿到一段模糊的需求描述，直接生成�
 ## 输入
 
 - 用户的需求描述（自然语言，可以很粗略）
-- 项目知识库 `prd-knowledge/`（如果存在）
+- 项目知识库（优先 `coding-knowledge/business/prd-reference/`，兼容 `prd-knowledge/`）
 
 ## 工作流程
 
 ### Phase 1: 理解上下文（静默执行，不需要用户参与）
 
-1. **读取知识库**：检查项目根目录下的 `prd-knowledge/` 目录，如果存在，读取以下文件建立对现有系统的理解：
+1. **读取 PRD 参考知识库**：按以下优先级查找知识库文件：
+   - **优先**：`coding-knowledge/business/prd-reference/` 目录（与编码知识库集成，信息更完整）
+   - **兼容**：`prd-knowledge/` 目录（独立知识库，旧项目可能使用此结构）
+
+   读取以下文件建立对现有系统的理解：
    - `existing-features.md` — 了解现有功能，避免重复建设
-   - `data-model.md` — 了解现有数据结构，新需求的数据模型要与之衔接
    - `user-roles.md` — 了解现有角色体系，权限设计要兼容
    - `business-flows.md` — 了解现有业务流程，新功能要嵌入现有体系
    - `business-glossary.md` — 了解业务术语，确保用语一致
    - `design-patterns.md` — 了解现有交互模式，保持 UI 一致性
+   - `data-model.md` — 了解现有数据结构（仅 prd-knowledge/ 路径下存在时读取）
 
 2. **读取编码知识库**（可选）：如果项目根目录下存在 `coding-knowledge/` 目录，可以读取以下文件来**理解现有系统的能力和约束**：
    - `repos/{repo}/architecture.md` — 了解各服务的职责边界
-   - `business/glossary.md` — 补充业务术语理解
+   - `business/glossary.md` — 补充业务术语理解（含跨系统别名映射和状态枚举）
    - `business/domains/{domain}/overview.md` — 了解现有业务流程
    - `repos/{repo}/database-schema.md` — 了解现有数据结构
 

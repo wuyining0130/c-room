@@ -508,15 +508,49 @@ AI 在生成需求文档或编写代码时，必须使用本术语表中的标�
 ### 3. 代码仓库层 → `repos/INDEX.md`
 各仓库的代码架构和符号索引。定位代码、理解模块职责、查找接口时查阅。
 
-## 使用指南
+## 意图路由表
 
-- **接到需求时**: 先读 `business/INDEX.md` 理解业务背景，再读对应域的 overview.md
-- **开始编码时**: 读 `repos/{repo}/architecture.md` 了解项目结构，再读 `codebase-index.md` 定位相关模块
-- **精确修改时**: 读 `repos/{repo}/symbols.md` 找到具体类和方法
-- **涉及数据库时**: 读 `repos/{repo}/database-schema.md` 了解表结构
-- **理解调用链时**: 读 `repos/{repo}/call-chains.md` 了解完整业务流程
-- **技术决策时**: 读 `infra/INDEX.md` 查阅相关规范
-- **跨服务改动时**: 读 `business/domains/{domain}/cross-service.md` 了解服务间依赖
+> 按你的具体意图直达所需文件，避免读无关内容。先匹配意图，只读对应列的文件。
+
+| 你要做什么 | 第一步读 | 第二步读 | 第三步（按需） |
+|-----------|---------|---------|--------------|
+| **写 PRD / 需求分析** | `business/prd-reference/existing-features.md` | `business/prd-reference/business-flows.md` | `business/prd-reference/business-glossary.md` |
+| **理解业务全局** | `business/overall-architecture.md` | `business/glossary.md` | 对应域的 `overview.md` |
+| **改某个服务的代码** | `repos/INDEX.md` 的场景路由表 | 目标仓库的 `symbols.md` | 目标仓库的 `call-chains.md` |
+| **改数据库表结构** | `repos/{repo}/database-schema.md` | `business/glossary.md`（确认字段含义） | — |
+| **理解跨服务调用** | `business/domains/{域}/cross-service.md` | 上下游仓库的 `call-chains.md` | — |
+| **技术选型 / 规范** | `infra/INDEX.md` | 对应规范文件 | — |
+| **定位某个类/方法** | `repos/INDEX.md` 的场景路由表 | 目标仓库的 `symbols.md` | — |
+
+生成时根据实际仓库和业务域补充更具体的意图行（如"改签章逻辑"→ 具体仓库路径），使路由表对该项目的 AI 消费者最大化有用。
+
+## 路由表匹配不上时
+
+路由表覆盖高频场景，但你的意图可能不在表里。按以下方式兜底：
+
+1. **关键词定位**：从你的任务中提取关键词（服务名、功能名、技术组件名），到 `repos/INDEX.md` 的场景路由表中搜索
+2. **业务域缩小范围**：确定任务涉及哪个业务域，读该域的 `overview.md` 了解域内仓库分工
+3. **层级导航**：仍然不确定时，从上方"三层知识架构"的子 INDEX.md 开始逐层浏览
+
+## 需要广泛理解时
+
+以下场景不应只读 2-3 个文件，需要跨多个文件建立全局认知后再行动：
+
+| 场景 | 建议阅读范围 |
+|------|------------|
+| **评估技术可行性** | 涉及仓库的 `architecture.md` + `call-chains.md` + `database-schema.md`，再加 `business/domains/{域}/cross-service.md` 评估跨服务影响 |
+| **评估改动影响范围** | `business/overall-architecture.md`（全局拓扑）+ 所有可能涉及仓库的 `call-chains.md`（追踪上下游） |
+| **排查跨服务问题** | 从入口仓库的 `call-chains.md` 出发，沿调用链逐个读下游仓库的 `call-chains.md` + `symbols.md` |
+| **新人理解整个系统** | `business/overall-architecture.md` → `business/glossary.md` → 每个域的 `overview.md` → 核心仓库的 `architecture.md` |
+
+生成时根据实际业务域和仓库拓扑填充具体路径。
+
+## 使用原则
+
+1. **先判断任务类型** — 明确的修改任务用路由表直达；探索性任务（可行性分析、影响评估、问题排查）参考上方"需要广泛理解时"
+2. **INDEX 先行** — 不确定找哪个仓库时，先读 `repos/INDEX.md` 的场景路由表和易混淆模块区分
+3. **symbols.md 是精确入口** — 需要定位具体代码时，直接查 symbols.md 的方法签名和行号
+4. **行号仅供参考** — 知识库基于扫描生成，代码变更后行号可能偏移，以实际代码为准
 
 ## 仓库快速导航
 

@@ -13,7 +13,7 @@ theme: pm-artifacts
 
 PRD 交付开发前的质量关卡。解决的核心问题：需求文档终稿质量不稳定，缺乏统一验收标准，导致开发频繁返工。
 
-像一个严谨的需求评审官——逐模块检查 PRD 是否完整、自洽，并结合 `prd-knowledge/` 知识库判断新需求是否与现有系统冲突。输出结构化报告，标明阻塞/建议/提示三级问题，每条附修改建议。修改后再跑一次，直到阻塞清零。
+像一个严谨的需求评审官——逐模块检查 PRD 是否完整、自洽，并结合知识库（优先 `coding-knowledge/business/prd-reference/`，兼容 `prd-knowledge/`）判断新需求是否与现有系统冲突。输出结构化报告，标明阻塞/建议/提示三级问题，每条附修改建议。修改后再跑一次，直到阻塞清零。
 
 ## 输入
 
@@ -37,15 +37,17 @@ PRD 交付开发前的质量关卡。解决的核心问题：需求文档终稿�
 
 1. 读取用户指定的 PRD 文件，提取 YAML frontmatter 中的 `version` 和 `module` 字段（如有），用于报告中标注检查的版本
 2. 根据 PRD 文件所在目录确定业务模块名（通常是 `requirements/{模块名}/prd-draft.md`），检查报告将输出到同目录下的 `review/` 子目录
-3. 检查项目根目录（参见 `conventions` skill 中的定义）下是否存在 `prd-knowledge/` 目录
-3. 如果存在，读取以下知识库文件用于交叉校验：
-   - `data-model.md` — 校验数据模型冲突
+3. 按以下优先级查找 PRD 知识库：
+   - **优先**：`coding-knowledge/business/prd-reference/` 目录（与编码知识库集成）
+   - **兼容**：`prd-knowledge/` 目录（独立知识库）
+4. 如果存在知识库，读取以下文件用于交叉校验：
+   - `existing-features.md` — 校验功能是否重复
    - `user-roles.md` — 校验权限体系一致性
    - `business-flows.md` — 校验业务流程衔接
-   - `existing-features.md` — 校验功能是否重复
    - `business-glossary.md` — 校验术语一致性
-   - `api-inventory.md` — 校验是否遗漏对现有接口的影响
-4. 如果不存在知识库，仅做文档自身完整性检查，在报告中提示建议先运行 `knowledge-init`
+   - `data-model.md` — 校验数据模型冲突（仅 prd-knowledge/ 路径下存在时读取）
+   - `api-inventory.md` — 校验是否遗漏对现有接口的影响（仅 prd-knowledge/ 路径下存在时读取）
+5. 如果两个路径均不存在知识库，仅做文档自身完整性检查，在报告中提示建议先运行 `knowledge-init` 或 `coding-knowledge-init`
 
 ### Step 2: 逐模块检查
 
