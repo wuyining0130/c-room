@@ -514,7 +514,7 @@ AI 在生成需求文档或编写代码时，必须使用本术语表中的标�
 
 | 你要做什么 | 第一步读 | 第二步读 | 第三步（按需） |
 |-----------|---------|---------|--------------|
-| **写 PRD / 需求分析** | `business/prd-reference/existing-features.md` | `business/prd-reference/business-flows.md` | `business/prd-reference/business-glossary.md` |
+| **写 PRD / 需求分析** | `business/prd-reference/existing-features.md` | `business/prd-reference/business-flows.md` | `business/prd-reference/glossary.md` |
 | **理解业务全局** | `business/overall-architecture.md` | `business/glossary.md` | 对应域的 `overview.md` |
 | **改某个服务的代码** | `repos/INDEX.md` 的场景路由表 | 目标仓库的 `symbols.md` | 目标仓库的 `call-chains.md` |
 | **改数据库表结构** | `repos/{repo}/database-schema.md` | `business/glossary.md`（确认字段含义） | — |

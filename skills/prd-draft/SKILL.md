@@ -35,7 +35,7 @@ PRD 撰写中最常见的坑：拿到一段模糊的需求描述，直接生成�
    - `existing-features.md` — 了解现有功能，避免重复建设
    - `user-roles.md` — 了解现有角色体系，权限设计要兼容
    - `business-flows.md` — 了解现有业务流程，新功能要嵌入现有体系
-   - `business-glossary.md` — 了解业务术语，确保用语一致
+   - `glossary.md` — 了解业务术语（读"业务定义"部分），确保用语一致
    - `design-patterns.md` — 了解现有交互模式，保持 UI 一致性
    - `data-model.md` — 了解现有数据结构（仅 prd-knowledge/ 路径下存在时读取）
 

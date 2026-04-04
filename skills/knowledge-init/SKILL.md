@@ -114,7 +114,7 @@ description: >-
 | 文件 | 内容 | 对需求生成的价值 |
 |------|------|------------------|
 | `architecture.md` | 技术栈、模块划分、部署结构、依赖关系 | 写 PRD 时判断技术可行性，预估开发复杂度 |
-| `business-glossary.md` | 业务术语定义和关系 | 确保 PRD 用语与现有系统一致，避免歧义 |
+| `glossary.md` | 业务术语定义和关系 | 确保 PRD 用语与现有系统一致，避免歧义 |
 | `user-roles.md` | 用户角色、权限矩阵、角色间关系 | 写用户故事时精确定义"谁"，设计权限时参考现有模式 |
 | `data-model.md` | 核心实体、字段含义、关系、约束 | 设计新功能的数据结构时避免与现有模型冲突 |
 | `existing-features.md` | 现有功能清单（按模块组织） | 了解系统全貌，避免重复建设，发现可复用的功能 |
@@ -221,7 +221,7 @@ flowchart TD
 ├── sources/                    # 原始资料（不动）
 ├── prd-knowledge/              # 本 skill 产出（面向写 PRD）
 │   ├── architecture.md
-│   ├── business-glossary.md
+│   ├── glossary.md
 │   ├── user-roles.md
 │   ├── data-model.md
 │   ├── existing-features.md
@@ -261,6 +261,6 @@ flowchart TD
 
 **知识库文件过长：** 每个文件控制在可快速浏览的长度。如果 api-inventory.md 超过 500 行，按模块拆分为子文件。
 
-**术语不一致：** business-glossary.md 中定义的术语，在其他文件中要保持一致使用。
+**术语不一致：** glossary.md 中定义的术语，在其他文件中要保持一致使用。
 
 **与 coding-knowledge 职责混淆：** 本 skill 的产出是给写 PRD 用的，不需要精确到方法签名和 DDL 字段类型。如果发现自己在写精确的代码级信息，说明越界了——那是 coding-knowledge-init 的职责。保持"业务语义"视角：实体"代表什么"比字段"是什么类型"更重要。

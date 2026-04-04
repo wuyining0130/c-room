@@ -152,7 +152,7 @@ coding-knowledge/
 | 文件 | 内容 | 下游 skill 如何使用 |
 |------|------|---------------------|
 | `architecture.md` | 技术栈、模块划分、部署结构 | prd-draft: 判断技术可行性 |
-| `business-glossary.md` | 业务术语定义和关系 | prd-draft/prd-review: 确保术语一致 |
+| `glossary.md` | 业务术语定义和关系 | prd-draft/prd-review: 确保术语一致 |
 | `user-roles.md` | 用户角色、权限矩阵 | prd-draft/prd-review: 权限设计参考 |
 | `data-model.md` | 核心实体、字段、关系、约束 | prd-draft/prd-review: 数据模型校验 |
 | `existing-features.md` | 现有功能清单（按模块） | prd-draft/prd-review: 避免重复建设 |
