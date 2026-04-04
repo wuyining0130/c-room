@@ -27,12 +27,12 @@ description: >-
 
 URL 模式：`https://www.tapd.cn/tapd_fe/{workspace_id}/{entity_type}/detail/{entity_id}`
 
-示例：`https://www.tapd.cn/tapd_fe/38735568/story/detail/1138735568001256446`
+示例：`https://www.tapd.cn/tapd_fe/12345678/story/detail/1112345678001256446`
 
 从 URL 中提取：
-- `workspace_id`：路径中 `tapd_fe/` 后面的数字（如 `38735568`）
+- `workspace_id`：路径中 `tapd_fe/` 后面的数字（如 `12345678`）
 - `entity_type`：`story` → stories, `bug` → bug
-- `entity_id`：`detail/` 后面的数字（如 `1138735568001256446`）
+- `entity_id`：`detail/` 后面的数字（如 `1112345678001256446`）
 
 **Git 仓库链接识别规则：**
 
@@ -242,10 +242,10 @@ python ~/.claude/skills/tapd/scripts/tapd.py get_stories_or_tasks \
 ### Example 1: 粘贴单条 TAPD 需求链接
 
 **用户输入：**
-"帮我把这个需求拉下来 https://www.tapd.cn/tapd_fe/38735568/story/detail/1138735568001256446"
+"帮我把这个需求拉下来 https://www.tapd.cn/tapd_fe/12345678/story/detail/1112345678001256446"
 
 **Skill 行为：**
-1. 识别为 TAPD 需求链接，提取 workspace_id=38735568, entity_id=1138735568001256446
+1. 识别为 TAPD 需求链接，提取 workspace_id=12345678, entity_id=1112345678001256446
 2. 检测 TAPD_ACCESS_TOKEN → 已配置 → 跳过引导
 3. 提供范围选项，用户选"只拉这一条"
 4. 执行拉取，保存 JSON + Markdown，生成 import-summary.md
@@ -254,9 +254,9 @@ python ~/.claude/skills/tapd/scripts/tapd.py get_stories_or_tasks \
 
 **用户输入：**
 "把这个项目的代码和需求都拉下来：
-git@gitlab.internal.com:team/knowledge-base.git
-https://www.tapd.cn/tapd_fe/38735568/story/detail/1138735568001256446
-https://www.tapd.cn/tapd_fe/38735568/story/detail/1138735568001256789"
+git@gitlab.example.com:myteam/myproject.git
+https://www.tapd.cn/tapd_fe/12345678/story/detail/1112345678001256446
+https://www.tapd.cn/tapd_fe/12345678/story/detail/1112345678001256789"
 
 **Skill 行为：**
 1. 识别三个链接：1 个 Git SSH 地址 + 2 条 TAPD 需求链接
