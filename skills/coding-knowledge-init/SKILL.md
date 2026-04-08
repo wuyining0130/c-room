@@ -50,12 +50,17 @@ coding-knowledge/
 │   ├── INDEX.md
 │   ├── overall-architecture.md       # 整体业务架构与服务拓扑
 │   ├── glossary.md                   # 业务术语表（术语定义 + 跨系统别名映射）
-│   └── domains/                      # 细分业务架构
-│       ├── INDEX.md
-│       └── {domain-name}/
-│           ├── overview.md           # 领域概述、核心流程
-│           ├── domain-model.md       # 领域模型与数据关系
-│           └── cross-service.md      # 跨仓库调用关系
+│   ├── domains/                      # 细分业务架构
+│   │   ├── INDEX.md
+│   │   └── {domain-name}/
+│   │       ├── overview.md           # 领域概述、核心流程
+│   │       ├── domain-model.md       # 领域模型与数据关系
+│   │       └── cross-service.md      # 跨仓库调用关系
+│   └── prd-reference/                # PRD 参考资料（产品语言，不含代码细节）
+│       ├── existing-features.md      # 现有功能清单（按业务分类）
+│       ├── business-flows.md         # 核心业务流程（含异常处理）
+│       ├── user-roles.md             # 角色定义与权限矩阵
+│       └── design-patterns.md        # 运营后台菜单结构 + 通用交互模式
 ├── repos/                            # 第3层：代码仓库层
 │   ├── INDEX.md                      # 仓库层索引（含场景→模块路由表）
 │   └── {repo-name}/
@@ -341,6 +346,8 @@ error: {如失败则填写原因}
 3.2 business/ 层（依赖 repos/ 的跨服务信息）
     ① glossary.md → ② overall-architecture.md
     → ③ domains/{domain}/overview.md → ④ domain-model.md → ⑤ cross-service.md
+    → ⑥ prd-reference/existing-features.md → ⑦ business-flows.md
+    → ⑧ user-roles.md → ⑨ design-patterns.md
 
 3.3 infra/ 层（依赖 Phase 2 用户补充 + repos/ 技术栈信息）
     生成顺序不敏感，可并行
@@ -357,7 +364,7 @@ error: {如失败则填写原因}
 
 **第一级：文件存在性检查**
 - 每个 repo 目录：.scan-snapshot.md, architecture.md（含"职责边界"章节）, codebase-index.md, symbols.md（无占位描述）, database-schema.md（有数据库时）, call-chains.md
-- business/：glossary.md, overall-architecture.md, 每个 domain 的 overview.md
+- business/：glossary.md, overall-architecture.md, 每个 domain 的 overview.md, prd-reference/ 下的 existing-features.md, business-flows.md, user-roles.md, design-patterns.md
 - infra/：tech-stack.md, middleware.md（有中间件时）
 - repos/INDEX.md：包含"场景路由表"，多仓库时包含"同名/易混淆模块区分"
 - 所有 INDEX.md ≤ 200 行
