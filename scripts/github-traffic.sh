@@ -1,5 +1,5 @@
 #!/bin/bash
-# GitHub Traffic 日报：拉取 clone 和 view 数据，追加到 CSV
+# GitHub Traffic 日报：拉取 clone 和 view 数据，合并到一个 CSV
 # 用法：bash github-traffic.sh
 # 建议每天跑一次（cron 或手动），GitHub 只保留 14 天数据
 
@@ -8,67 +8,63 @@ TOKEN="${GITHUB_TOKEN:?请先设置 GITHUB_TOKEN 环境变量（需要 repo 权�
 DATA_DIR="$(cd "$(dirname "$0")/.." && pwd)/traffic-data"
 mkdir -p "$DATA_DIR"
 
-CLONES_CSV="$DATA_DIR/clones.csv"
-VIEWS_CSV="$DATA_DIR/views.csv"
+TRAFFIC_CSV="$DATA_DIR/traffic.csv"
 
 # 初始化 CSV 表头
-[ ! -f "$CLONES_CSV" ] && echo "date,clones,unique_cloners" > "$CLONES_CSV"
-[ ! -f "$VIEWS_CSV" ] && echo "date,views,unique_visitors" > "$VIEWS_CSV"
+[ ! -f "$TRAFFIC_CSV" ] && echo "日期(Date),克隆次数(Clones),独立克隆用户(Unique Cloners),页面浏览量(Views),独立访客(Unique Visitors)" > "$TRAFFIC_CSV"
 
-# 拉取 clones 数据
-curl -s -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$REPO/traffic/clones" | \
-  python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for c in data.get('clones', []):
-    date = c['timestamp'][:10]
-    print(f\"{date},{c['count']},{c['uniques']}\")
-" | while read -r line; do
-  date=$(echo "$line" | cut -d',' -f1)
-  grep -q "^$date," "$CLONES_CSV" || echo "$line" >> "$CLONES_CSV"
-done
+# 拉取数据
+CLONES_JSON=$(curl -s -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$REPO/traffic/clones")
+VIEWS_JSON=$(curl -s -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$REPO/traffic/views")
 
-# 拉取 views 数据
-curl -s -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$REPO/traffic/views" | \
-  python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for v in data.get('views', []):
-    date = v['timestamp'][:10]
-    print(f\"{date},{v['count']},{v['uniques']}\")
-" | while read -r line; do
-  date=$(echo "$line" | cut -d',' -f1)
-  grep -q "^$date," "$VIEWS_CSV" || echo "$line" >> "$VIEWS_CSV"
-done
+# 合并两个 JSON 写入 CSV（跳过已存在的日期）
+_CLONES="$CLONES_JSON" _VIEWS="$VIEWS_JSON" _CSV="$TRAFFIC_CSV" \
+python3 -c '
+import json, os
+
+clones = json.loads(os.environ["_CLONES"])
+views  = json.loads(os.environ["_VIEWS"])
+csv_path = os.environ["_CSV"]
+
+existing = set()
+try:
+    with open(csv_path) as f:
+        for line in f:
+            if not line.startswith("日期"):
+                existing.add(line.split(",")[0])
+except FileNotFoundError:
+    pass
+
+clone_map = {c["timestamp"][:10]: c for c in clones.get("clones", [])}
+view_map  = {v["timestamp"][:10]: v for v in views.get("views", [])}
+all_dates = sorted(set(list(clone_map.keys()) + list(view_map.keys())))
+
+with open(csv_path, "a") as f:
+    for date in all_dates:
+        if date in existing:
+            continue
+        c = clone_map.get(date, {"count": 0, "uniques": 0})
+        v = view_map.get(date, {"count": 0, "uniques": 0})
+        row = [date, str(c["count"]), str(c["uniques"]), str(v["count"]), str(v["uniques"])]
+        f.write(",".join(row) + "\n")
+'
 
 # 输出日报
 echo ""
 echo "=== C-ROOM GitHub Traffic 日报 ==="
 echo ""
-echo "📦 Clone 数据（最近 14 天）"
-echo "----------------------------"
-printf "%-12s %8s %8s\n" "日期" "clone数" "独立用户"
-tail -14 "$CLONES_CSV" | grep -v "^date" | while IFS=',' read -r date count uniques; do
-  printf "%-12s %8s %8s\n" "$date" "$count" "$uniques"
+printf "%-12s %10s %14s %10s %10s\n" "日期" "克隆次数" "独立克隆用户" "页面浏览量" "独立访客"
+echo "--------------------------------------------------------------"
+tail -14 "$TRAFFIC_CSV" | grep -v "^日期" | while IFS=',' read -r date clones uniq_c views uniq_v; do
+  printf "%-12s %10s %14s %10s %10s\n" "$date" "$clones" "$uniq_c" "$views" "$uniq_v"
 done
 
-TOTAL_CLONES=$(tail -14 "$CLONES_CSV" | grep -v "^date" | awk -F',' '{s+=$2}END{print s}')
-TOTAL_UNIQUE=$(tail -14 "$CLONES_CSV" | grep -v "^date" | awk -F',' '{s+=$3}END{print s}')
-echo "----------------------------"
-printf "%-12s %8s %8s\n" "合计" "$TOTAL_CLONES" "$TOTAL_UNIQUE"
-
-echo ""
-echo "👀 页面访问（最近 14 天）"
-echo "----------------------------"
-printf "%-12s %8s %8s\n" "日期" "浏览量" "独立访客"
-tail -14 "$VIEWS_CSV" | grep -v "^date" | while IFS=',' read -r date count uniques; do
-  printf "%-12s %8s %8s\n" "$date" "$count" "$uniques"
-done
-
-TOTAL_VIEWS=$(tail -14 "$VIEWS_CSV" | grep -v "^date" | awk -F',' '{s+=$2}END{print s}')
-TOTAL_VISITORS=$(tail -14 "$VIEWS_CSV" | grep -v "^date" | awk -F',' '{s+=$3}END{print s}')
-echo "----------------------------"
-printf "%-12s %8s %8s\n" "合计" "$TOTAL_VIEWS" "$TOTAL_VISITORS"
+TOTAL_C=$(tail -14 "$TRAFFIC_CSV" | grep -v "^日期" | awk -F',' '{s+=$2}END{print s}')
+TOTAL_UC=$(tail -14 "$TRAFFIC_CSV" | grep -v "^日期" | awk -F',' '{s+=$3}END{print s}')
+TOTAL_V=$(tail -14 "$TRAFFIC_CSV" | grep -v "^日期" | awk -F',' '{s+=$4}END{print s}')
+TOTAL_UV=$(tail -14 "$TRAFFIC_CSV" | grep -v "^日期" | awk -F',' '{s+=$5}END{print s}')
+echo "--------------------------------------------------------------"
+printf "%-12s %10s %14s %10s %10s\n" "合计" "$TOTAL_C" "$TOTAL_UC" "$TOTAL_V" "$TOTAL_UV"
 echo ""
