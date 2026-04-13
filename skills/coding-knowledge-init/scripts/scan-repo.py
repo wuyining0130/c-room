@@ -364,6 +364,7 @@ def scan_java(repo_path):
         "cross_service_calls": [],
         "mq": [],
         "scheduled_tasks": [],
+        "components": [],
         "sql_files": [],
         "enums": [],
     }
@@ -521,8 +522,11 @@ def scan_java(repo_path):
             })
 
     # 10. Scheduled tasks
+    # 10a. Annotation-based tasks
     sched_hits = run_grep("@Scheduled\\|@SaturnJob\\|@XxlJob", repo_path)
+    sched_seen_files = set()
     for filepath, lineno, line in sched_hits:
+        sched_seen_files.add(filepath)
         cron_match = re.search(r'cron\s*=\s*["\']([^"\']+)["\']', line)
         result["scheduled_tasks"].append({
             "file": relative(filepath, repo_path),
@@ -530,6 +534,73 @@ def scan_java(repo_path):
             "cron": cron_match.group(1) if cron_match else "",
             "context": line[:200],
         })
+    # 10b. Inheritance-based tasks (xsaturn AbstractJobSupport, xxl-job IJobHandler, etc.)
+    task_base_classes = [
+        "AbstractJobSupport", "AbstractSaturnJob", "AbstractSaturnJavaJob",
+        "IJobHandler", "AbstractElasticJob", "SimpleJob",
+    ]
+    task_base_pattern = "\\|".join("extends.*" + cls for cls in task_base_classes)
+    inherit_hits = run_grep(task_base_pattern, repo_path)
+    for filepath, lineno, line in inherit_hits:
+        if filepath in sched_seen_files or not filepath.endswith(".java"):
+            continue
+        sched_seen_files.add(filepath)
+        content = read_file(filepath, 300)
+        class_match = re.search(r'class\s+(\w+)', content)
+        class_name = class_match.group(1) if class_match else os.path.basename(filepath).replace(".java", "")
+        # Extract the base class name
+        base_match = re.search(r'extends\s+(\w+)', line)
+        base_class = base_match.group(1) if base_match else ""
+        info = extract_java_method_info(filepath, class_name, repo_path)
+        if info:
+            info["base_class"] = base_class
+            result["scheduled_tasks"].append(info)
+        else:
+            result["scheduled_tasks"].append({
+                "file": relative(filepath, repo_path),
+                "line": lineno,
+                "class_name": class_name,
+                "base_class": base_class,
+                "context": line.strip()[:200],
+            })
+
+    # 10c. Components: @Configuration, @Component classes not already captured
+    all_seen = set()
+    for category in ["controllers", "services", "repositories"]:
+        for item in result[category]:
+            if "file" in item:
+                all_seen.add(item["file"])
+    for item in result["scheduled_tasks"]:
+        if "file" in item:
+            all_seen.add(item["file"])
+    for item in result["entities"]:
+        if "file" in item:
+            all_seen.add(item["file"])
+    comp_hits = run_grep("@Configuration\\|@Component", repo_path)
+    comp_seen = set()
+    for filepath, lineno, line in comp_hits:
+        if not filepath.endswith(".java"):
+            continue
+        rel_path = relative(filepath, repo_path)
+        if rel_path in all_seen or rel_path in comp_seen:
+            continue
+        # Skip test files
+        if "/test/" in filepath or "/tests/" in filepath:
+            continue
+        comp_seen.add(rel_path)
+        content = read_file(filepath, 300)
+        class_match = re.search(r'class\s+(\w+)', content)
+        class_name = class_match.group(1) if class_match else os.path.basename(filepath).replace(".java", "")
+        info = extract_java_method_info(filepath, class_name, repo_path)
+        if info:
+            result["components"].append(info)
+        else:
+            result["components"].append({
+                "file": rel_path,
+                "line": lineno,
+                "class_name": class_name,
+                "context": line.strip()[:200],
+            })
 
     # 11. SQL files
     sql_files = run_find(repo_path, "*.sql")
