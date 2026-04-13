@@ -4,21 +4,73 @@
 
 C-ROOM 是一套开箱即用的 Claude Code Skill 集合。安装后，你只需要用自然语言描述需求，AI 就能帮你完成从产品到研发的完整闭环。
 
+## 解决什么问题
+
+AI Coding 的瓶颈不在"AI 能不能写好代码"，而在**每次都要从头交代项目背景**。
+
+业务流程在产品脑子里，系统架构在开发脑子里，调用关系在代码注释里。每次和 AI 协作都要手动拼上下文，效率全靠人肉手艺。
+
+C-ROOM 做的事：**把专家知识一次性结构化沉淀，之后全链路自动加载。**
+
+| 没有 C-ROOM | 有 C-ROOM |
+|-------------|----------|
+| 改代码前在 10+ 个仓库 grep 半小时找目标方法 | 几秒定位到方法签名和行号 |
+| 写 PRD 时 AI 编造系统现状，交付后反复改 | 先问 5-8 轮澄清问题，基于真实系统状态生成 |
+| 技术方案遗漏跨服务影响，上线后才发现 | 自动追踪调用链，列出所有受影响的服务 |
+| 每次对话重新交代项目背景 | 知识沉淀一次，每个环节自动加载 |
+
+## 适用场景
+
+- **多仓库微服务项目**（最佳场景）：Java/Spring、Go、PHP、Python、Node.js、Vue/React
+- **单仓库项目**也可以用，只是跨服务相关的能力用不上
+- **技术栈要求**：需要安装 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+
 ## 安装
-
-在 Claude Code 中输入以下任意一句话即可触发安装：
-
-```
-帮我安装 https://github.com/wuyining0130/c-room下的所有skill（首次安装）
-更新 https://github.com/wuyining0130/c-room 所有 skill 到本地（更新到最新版）
-把 github.com/wuyining0130/c-room 里的 skills 克隆到 ~/.claude/skills/
-```
-
-或者直接用脚本：
 
 ```bash
 git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/install.sh && rm -rf /tmp/c-room
 ```
+
+或者在 Claude Code 对话中说：
+
+```
+帮我安装 https://github.com/wuyining0130/c-room 下的所有 skill
+```
+
+更新到最新版：
+
+```
+更新 https://github.com/wuyining0130/c-room 所有 skill 到本地
+```
+
+## Quick Start
+
+安装完成后，在你的项目目录下打开 Claude Code，试试：
+
+**第一步：建立知识库**（只需做一次）
+
+告诉 AI 你的仓库信息：
+
+```
+帮我初始化编码知识库。仓库信息如下：
+
+模块    子模块    服务           本地路径                 服务描述
+交易    订单      order-srv     ~/repos/order-srv       订单服务
+                  pay-srv       ~/repos/pay-srv         支付服务
+        履约      fulfill-srv   ~/repos/fulfill-srv     履约服务
+```
+
+AI 会自动扫描代码、生成三层知识库（基础技术层 → 业务层 → 代码仓库层），大约 15 分钟。
+
+**第二步：开始使用**
+
+知识库建好后，后续所有操作都会自动加载项目上下文：
+
+```
+我要做一个新功能：用户可以批量导出订单
+```
+
+AI 会先问你澄清问题（范围、角色、流程），然后生成 PRD，接着可以继续走技术方案、代码生成、code review。
 
 ## 装完能干嘛
 
@@ -26,13 +78,13 @@ git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-
 
 | 你说的话 | 触发的 Skill | AI 帮你做的事 |
 |---------|-------------|-------------|
-| "帮我了解一下这个项目" | `/knowledge-init` | 扫描代码和文档，生成结构化知识库 |
-| "我要做一个新功能" | `/prd-draft` | 先问你 5-8 轮澄清问题，再输出 PRD |
-| "看看这个 PRD 有没有问题" | `/prd-review` | 7 个维度逐项校验，输出分级报告 |
-| "把 PRD 变成页面" | `/proto-gen` | 生成 HTML 高保真原型，双击即可预览 |
-| "这个需求怎么实现" | `/tech-design` | 输出改动范围、接口设计、DDL、任务拆解 |
-| "开始写代码" | `/code-gen` | 按依赖顺序生成完整业务代码 |
-| "帮我看看这些改动" | `/code-review` | 四维度审查：需求覆盖、方案合规、代码质量、安全 |
+| "帮我了解一下这个项目" | `knowledge-init` | 扫描代码和文档，生成结构化知识库 |
+| "我要做一个新功能" | `prd-draft` | 先问你 5-8 轮澄清问题，再输出 PRD |
+| "看看这个 PRD 有没有问题" | `prd-review` | 7 个维度逐项校验，输出分级报告 |
+| "把 PRD 变成页面" | `proto-gen` | 生成 HTML 高保真原型，双击即可预览 |
+| "这个需求怎么实现" | `tech-design` | 输出改动范围、接口设计、DDL、任务拆解 |
+| "开始写代码" | `code-gen` | 按依赖顺序生成完整业务代码 |
+| "帮我看看这些改动" | `code-review` | 四维度审查：需求覆盖、方案合规、代码质量、安全 |
 
 ## 全流程一览
 
