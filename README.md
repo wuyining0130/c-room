@@ -161,10 +161,7 @@ Studio 是一个 git 仓库。产品和研发 clone 同一个仓库，通过 pus
 研发 clone studio → pull PRD → 写技术方案 + 生成代码 → push
 ```
 
-两个角色的区别只在于**是否需要代码仓库**：
-
-- **产品**：clone studio 即可开始，不需要代码仓库
-- **研发**：clone studio 后，再把业务代码仓库 clone 到 `repos/`（已 gitignore，不会提交到 studio）
+两个角色都建议把业务代码仓库 clone 到 `repos/`（已 gitignore，不会提交到 studio）。产品在写 PRD 时经常需要确认"系统现在具体怎么做的"，AI 会去读源码验证业务逻辑，没有代码仓库就只能靠知识库的描述，可能不准确。
 
 ## 装完能干嘛
 
