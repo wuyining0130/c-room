@@ -243,7 +243,20 @@ def md_to_html(md_content: str) -> str:
         print(f"  共渲染 {mermaid_count} 个 Mermaid 图表")
         _close_playwright()
 
+    # 确保有序/无序列表前有空行，否则 markdown 库不会解析为 <ol>/<ul>
+    content = re.sub(r'([^\n])\n((\d+\.|\-|\*)\s)', r'\1\n\n\2', content)
+
+    # 连续的 **标签：** 行之间加 trailing spaces 使 Markdown 产生 <br>
+    # 需要循环应用，因为正则匹配不重叠（A\nB\nC 第一次匹配 A\nB，B\nC 被跳过）
+    # 用 (?<!  ) 负向前瞻确保不会重复添加 trailing spaces（避免无限循环）
+    prev = None
+    while prev != content:
+        prev = content
+        content = re.sub(r'(\*\*[^*]+：\*\*\s*.+?)(?<!  )\n(\*\*[^*]+：\*\*)', r'\1  \n\2', content)
+
     html = markdown.markdown(content, extensions=['tables', 'fenced_code', 'toc'])
+    # 松散列表会产生 <li><p>...</p></li>，去掉 <p> 包裹改为紧凑格式避免行距过大
+    html = re.sub(r'<li>\s*<p>(.*?)</p>\s*</li>', r'<li>\1</li>', html, flags=re.DOTALL)
     return html
 
 
@@ -330,7 +343,7 @@ def main():
 
     # 获取当前需求单
     story = get_story(workspace_id, story_id)
-    current_desc_len = len(story.get('description', ''))
+    current_desc_len = len(story.get('description') or '')
     print(f"需求单: {story['name']}")
     print(f"当前描述: {current_desc_len} 字符")
 

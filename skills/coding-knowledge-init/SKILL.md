@@ -413,6 +413,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 - 行号可能因代码变更而偏移，以实际代码为准
 - 置信度标记为 `low` 的信息来自推断，使用前建议验证
+- **业务描述必须用代码验证**：`business/` 层是产品语言，会省略查询条件、数据维度等实现细节。回答"系统现在具体怎么做的"时，必须去 `repos/` 层定位源码确认，不能只凭业务描述下结论
 - 如需更新知识库，运行 coding-knowledge-init skill
 ```
 
