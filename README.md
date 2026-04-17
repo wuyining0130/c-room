@@ -151,6 +151,21 @@ my-project/                              # 项目 Studio 根目录
 
 知识库只需建一次，之后每个需求都会自动加载项目上下文，不用重复交代背景。
 
+### 产品 & 研发协作
+
+Studio 是一个 git 仓库。产品和研发 clone 同一个仓库，通过 push/pull 交接：
+
+```
+产品 clone studio → 写 PRD + 原型 → push
+                                       ↓
+研发 clone studio → pull PRD → 写技术方案 + 生成代码 → push
+```
+
+两个角色的区别只在于**是否需要代码仓库**：
+
+- **产品**：clone studio 即可开始，不需要代码仓库
+- **研发**：clone studio 后，再把业务代码仓库 clone 到 `repos/`（已 gitignore，不会提交到 studio）
+
 ## 装完能干嘛
 
 在 Claude Code 里直接说就行：
