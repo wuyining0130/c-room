@@ -159,15 +159,15 @@ my-project/                              # 项目 Studio 根目录
 
 ```mermaid
 flowchart TD
-    subgraph 基础["第零步：项目地图"]
-        CKI["coding-knowledge-init<br/>生成 coding-knowledge/"]
+    subgraph 基础["第零步：项目地图（只需做一次）"]
+        CKI["coding-knowledge-init<br/>生成 coding-knowledge/<br/>含 business/prd-reference/"]
     end
 
     subgraph PRD["需求阶段（面向产品）"]
-        PI["project-import<br/>导入项目资料"] --> KI["knowledge-init<br/>生成 prd-knowledge/"]
-        KI --> PD["prd-draft<br/>澄清+写草稿"]
-        PD --> PR["prd-review<br/>完整性检查"]
-        PR --> PG["proto-gen<br/>生成原型"]
+        PD["prd-draft<br/>澄清+写草稿"]
+        PR["prd-review<br/>完整性检查"]
+        PG["proto-gen<br/>生成原型"]
+        PD --> PR --> PG
     end
 
     subgraph DEV["研发阶段（面向开发）"]
@@ -177,10 +177,17 @@ flowchart TD
         TD_ --> CG --> CR
     end
 
-    CKI -.->|参考| KI
+    subgraph OPT["可选（无编码知识库时）"]
+        PI["project-import<br/>导入项目资料"]
+        KI["knowledge-init<br/>生成 prd-knowledge/"]
+        PI --> KI
+    end
+
+    CKI -->|prd-reference| PD
     CKI -.->|参考| TD_
-    PG --> TD_
     CKI -.->|参考| CG
+    PG --> TD_
+    KI -.->|替代 prd-reference| PD
 ```
 
 ## Skill 清单
