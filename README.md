@@ -72,6 +72,75 @@ AI 会自动扫描代码、生成三层知识库（基础技术层 → 业务层
 
 AI 会先问你澄清问题（范围、角色、流程），然后生成 PRD，接着可以继续走技术方案、代码生成、code review。
 
+## 项目 Studio 是什么
+
+C-ROOM 的所有 skill 围绕一个**项目 Studio** 工作——一个专属于你的业务模块的本地工作目录，所有知识库、需求文档、技术方案、原型都集中在这里。
+
+### 建立 Studio
+
+```
+mkdir my-project && cd my-project
+```
+
+在这个目录下打开 Claude Code，按顺序执行：
+
+1. **建立编码知识库**（第零步，只需做一次）
+   ```
+   帮我初始化编码知识库。仓库信息如下：
+   模块    子模块    服务           本地路径              服务描述
+   交易    订单      order-srv     ~/repos/order-srv    订单服务
+                     pay-srv       ~/repos/pay-srv      支付服务
+   ```
+   产出：`coding-knowledge/` — 三层分层技术知识库。建好后，后续写 PRD、写技术方案、生成代码都会自动加载。
+
+2. **开始做需求**（可反复执行，每个需求独立目录）
+   ```
+   我要做一个新功能：用户可以批量导出订单
+   ```
+   产出：`requirements/批量导出/` — PRD、原型、技术方案、代码审查报告
+
+> **补充说明**：`project-import` 和 `knowledge-init` 两个 skill 面向没有完整编码知识库的场景——比如你接手一个陌生项目，需要先导入资料、生成面向写 PRD 的知识库。如果你已经有了 `coding-knowledge/`，可以跳过这两步，直接从写需求开始。
+
+### Studio 最终目录结构
+
+```
+my-project/                              # 项目 Studio 根目录
+├── CLAUDE.md                            # AI 编码指引（自动生成）
+│
+├── coding-knowledge/                    # coding-knowledge-init 产出
+│   ├── INDEX.md                         # 顶层入口（含意图路由表）
+│   ├── config.yaml                      # 项目配置
+│   ├── knowledge-gaps.md                # 知识缺口报告
+│   ├── infra/                           # 基础技术层（技术栈、中间件、分层规范）
+│   ├── business/                        # 业务层（术语表、架构、业务域、PRD参考）
+│   └── repos/                           # 代码仓库层（每个仓库的架构/符号/调用链/表结构）
+│
+├── prd-knowledge/                       # knowledge-init 产出（可选，无编码知识库时使用）
+│   ├── business-context.md              # 业务上下文
+│   ├── user-roles.md                    # 用户角色
+│   ├── existing-features.md             # 现有功能
+│   └── ...
+│
+├── repos/                               # 业务代码仓库（git clone 或软链接）
+│   ├── order-srv/
+│   ├── pay-srv/
+│   └── ...
+│
+└── requirements/                        # 每个需求独立目录
+    ├── 批量导出/
+    │   ├── prd-draft.md                 # PRD 草稿
+    │   ├── prd-context.md               # 需求上下文（跨会话记忆）
+    │   ├── review/                      # PRD 审查报告
+    │   ├── prototype/                   # HTML 高保真原型
+    │   ├── tech-design.md               # 技术方案
+    │   ├── code-gen-report.md           # 代码生成报告
+    │   └── code-review/                 # 代码审查报告
+    └── 权限管理/
+        └── ...                          # 同上结构
+```
+
+知识库只需建一次，之后每个需求都会自动加载项目上下文，不用重复交代背景。
+
 ## 装完能干嘛
 
 在 Claude Code 里直接说就行：
