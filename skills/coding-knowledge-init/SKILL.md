@@ -29,6 +29,8 @@ description: >-
 | `references/templates.md` | 所有输出文件的 markdown 模板 | Phase 3 生成文档时 |
 | `references/tech-stack-guide.md` | 各技术栈 JSON 字段→文档的映射指南 | Phase 1.2 读取 scan-result.json 时 |
 | `references/phase2-rules.md` | Phase 2 问题触发规则和默认策略 | Phase 2 开始前 |
+| `references/agent-prompt-template.md` | 并行合成的子 Agent prompt 模板 | Phase 1.3 启动并行 Agent 时 |
+| `references/quality-checks.md` | 覆盖率检查规则、评分卡模板、自动修复策略 | Phase 3.5 第四级校验时 |
 
 ---
 
@@ -251,69 +253,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 **context 保护**：每完成一批后，Re-read `.progress.yaml` 和已完成仓库的关键摘要（跨服务调用目标、MQ topics），释放本批的详细数据。
 
-**子 Agent prompt 模板**（必须严格使用此模板构造 prompt）：
-
-```
-你是一个知识库文档生成 Agent。请为以下仓库生成 coding-knowledge 文档。
-
-## 仓库列表
-{逐个列出，格式如下}
-- 仓库名: order_srv
-  scan-result.json 路径: /path/to/coding-knowledge/scan-data/order_srv.scan-result.json
-  输出目录: /path/to/coding-knowledge/repos/order_srv/
-  技术栈: java
-
-## 生成顺序（严格按此顺序，每个仓库内部也按此顺序）
-1. .scan-snapshot.md — 读取 scan-result.json，按快照模板生成
-2. database-schema.md — 从 entities + sql_files 提取（无数据库依赖则跳过）
-3. symbols.md — 从 controllers + services + repositories + entities 提取
-4. call-chains.md — 从 controllers.methods.body_preview + cross_service_calls + mq 合成
-5. codebase-index.md — 从 directory_tree + 各层类文件清单合成
-6. architecture.md — 综合以上所有文件信息生成概览（必须包含"职责边界"章节）
-
-## 模板获取
-先 Read references/templates.md 获取所有输出文件模板。
-再 Read references/tech-stack-guide.md 了解 JSON 字段映射。
-
-## symbols.md 质量要求
-- 禁止占位描述（不允许 "(多个方法)" 等模糊占位符）
-- 每个方法必须有完整签名，从 scan-result.json 的 methods 数组中提取
-- 路径必须包含行号（从 methods[].line 提取）
-- 按 Controller → Service → Repository/Mapper → Entity 分组
-- 总条目 50-100 个核心符号
-
-## architecture.md 职责边界要求
-- 必须包含"本服务负责"、"本服务不负责"、"常见误解"三个子章节
-- 从 controllers 推断核心职责
-- 从 cross_service_calls 推断"不负责"的功能
-- 常见误解：如仓库名相似的需要区分
-
-## 输出格式
-每个仓库处理完成后输出：
-===REPO_COMPLETE===
-repo_name: {仓库名}
-status: success|failed
-docs_generated:
-  - .scan-snapshot.md
-  - architecture.md
-  - symbols.md
-  - codebase-index.md
-  - database-schema.md
-  - call-chains.md
-symbols_count: {symbols.md 中的符号总数}
-controllers_count: {Controller 数量}
-services_count: {Service 数量}
-entities_count: {Entity 数量}
-cross_service_targets: [appid1, appid2]
-mq_topics: [topic1, topic2]
-error: {如失败则填写原因}
-===END_REPO===
-
-注意：
-- 不要使用 AskUserQuestion，所有信息从 scan-result.json 中获取
-- 每完成一个仓库就输出 REPO_COMPLETE 块
-- 如某个仓库的 scan-result.json 数据为空，标注为空仓库，只生成 architecture.md
-```
+**先 Read `references/agent-prompt-template.md` 获取完整的子 Agent prompt 模板**，严格使用该模板构造 prompt。模板包含仓库列表格式、生成顺序、质量要求、输出格式等完整规范。
 
 **主 Agent 解析子 Agent 输出**：提取 `cross_service_targets` 和 `mq_topics` 用于 Phase 3 生成 cross-service.md，更新 `.progress.yaml`。
 
@@ -381,83 +321,7 @@ error: {如失败则填写原因}
 
 **第四级：覆盖率与完整性量化评估**
 
-这是质量自检的核心——量化评估知识库对实际代码的覆盖程度。覆盖率不足的知识库会导致下游 skill（tech-design、code-gen、code-review）的分析精度下降。
-
-**symbols.md 覆盖率检查**：
-
-对每个仓库，从 scan-result.json（或通过 Grep 扫描源码）获取实际的类/方法数量，与 symbols.md 中记录的条目对比：
-
-| 检查维度 | 计算方式 | 合格线 | 不合格后果 |
-|----------|---------|--------|-----------|
-| Controller 覆盖率 | symbols.md 中 Controller 数 / 仓库实际 Controller 数 | ≥ 90% | tech-design 无法精确定位接口，改动范围分析降级为推测 |
-| Service 覆盖率 | symbols.md 中 Service 数 / 仓库实际 Service 数 | ≥ 80% | code-gen 风格学习缺少参考，生成代码风格可能不一致 |
-| Repository/Mapper 覆盖率 | symbols.md 中 Repo/Mapper 数 / 仓库实际数 | ≥ 70% | code-gen 数据访问层生成缺少模式参考 |
-| Entity 覆盖率 | symbols.md 中 Entity 数 / 仓库实际 Entity 数 | ≥ 80% | database-schema 与代码的映射关系不完整 |
-| 方法签名完整度 | 有完整签名的方法数 / symbols.md 中总方法数 | 100% | 禁止出现"(多个方法)"等占位描述 |
-
-检查方式：
-1. 从 scan-result.json 的 `controllers`、`services`、`repositories`、`entities` 数组获取实际数量
-2. 如果 scan-result.json 不可用，用 Grep 搜索实际代码：
-   - Controller：`@RestController|@Controller` (Java)、`func.*Handler` (Go)、`class.*Controller` (PHP/Python)
-   - Service：`@Service` (Java)、`type.*Service struct` (Go)
-   - Entity：`@Entity|@Table` (JPA)、`@TableName` (MyBatis-Plus)、`CREATE TABLE` (SQL)
-3. 对比 symbols.md 中各分组的条目数
-
-**call-chains.md 完整性检查**：
-
-| 检查维度 | 计算方式 | 合格线 | 不合格后果 |
-|----------|---------|--------|-----------|
-| 跨服务调用覆盖 | call-chains.md 中记录的跨服务调用数 / scan-result.json 中 cross_service_calls 总数 | ≥ 90% | tech-design 调用链追踪遗漏中间层服务 |
-| MQ topic 覆盖 | call-chains.md 中记录的 MQ topic 数 / scan-result.json 中 mq.topics 总数 | 100% | 异步链路遗漏导致改动范围不完整 |
-| 调用链双向一致 | A 仓库记录"调用 B"，B 仓库应记录"被 A 调用" | 100% | cross-service.md 调用关系矛盾 |
-| 入口链路覆盖 | 有完整调用链的 Controller 方法数 / 核心 Controller 方法总数 | ≥ 60% | code-review 无法验证跨服务调用模式一致性 |
-
-检查方式：
-1. 从各仓库 scan-result.json 的 `cross_service_calls` 数组提取所有跨服务调用目标
-2. 与 call-chains.md 中记录的调用关系逐一对比
-3. 从 scan-result.json 的 `mq` 部分提取所有 producer/consumer topic，与 call-chains.md 对比
-4. 双向检查：如果仓库 A 的 call-chains.md 记录了对仓库 B 的调用，检查仓库 B 的 call-chains.md 或 cross-service.md 中是否有对应的被调用记录
-
-**生成质量评分卡**：
-
-检查完成后，在 `knowledge-gaps.md` 中生成质量评分卡：
-
-```markdown
-## 质量评分卡
-
-### 按仓库评分
-
-| 仓库 | symbols 覆盖率 | call-chains 完整性 | 综合评级 | 影响 |
-|------|---------------|-------------------|---------|------|
-| order_srv | C:95% S:88% R:75% E:90% | 跨服务:92% MQ:100% | ✅ 合格 | — |
-| fulfill_srv | C:80% S:60% R:50% E:70% | 跨服务:70% MQ:80% | ⚠️ 不足 | tech-design 定位精度下降 |
-| pay_srv | C:100% S:90% R:80% E:85% | 跨服务:100% MQ:100% | ✅ 优秀 | — |
-
-> C=Controller S=Service R=Repository E=Entity
-
-### 全局评分
-
-| 维度 | 得分 | 说明 |
-|------|------|------|
-| symbols.md 总覆盖率 | {加权平均}% | 按仓库代码量加权 |
-| call-chains.md 完整性 | {加权平均}% | 按跨服务调用数量加权 |
-| 调用链双向一致性 | {百分比}% | 不一致的调用对数量 |
-| **综合评级** | ✅ 可用 / ⚠️ 建议补充 / ❌ 需要重新扫描 | |
-
-### 评级标准
-
-- ✅ **可用**：所有仓库 symbols 覆盖率 ≥ 合格线，call-chains 完整性 ≥ 90%
-- ⚠️ **建议补充**：部分仓库低于合格线，列出具体补充建议
-- ❌ **需要重新扫描**：核心仓库严重不足（Controller 覆盖率 < 70%），建议重新运行扫描
-```
-
-**不合格时的自动修复**：
-
-- symbols.md 覆盖率不足：自动 Grep 查找遗漏的类，Read 源码提取方法签名，补充到 symbols.md
-- call-chains.md 遗漏跨服务调用：从 scan-result.json 提取遗漏的调用关系，补充到 call-chains.md
-- MQ topic 遗漏：从 scan-result.json 补充遗漏的 topic
-- 双向不一致：在两侧都补充缺失的调用关系记录
-- 自动修复后重新计算评分，更新评分卡
+**Read `references/quality-checks.md` 获取完整的覆盖率检查规则、评分卡模板和自动修复策略。** 这是质量自检的核心——量化评估知识库对实际代码的覆盖程度，检查 symbols.md 覆盖率（Controller ≥90%、Service ≥80%、Entity ≥80%）和 call-chains.md 完整性（跨服务调用 ≥90%、MQ topic 100%、双向一致 100%），不合格时自动修复。
 
 如有缺失或不一致，**立即修正**。
 
