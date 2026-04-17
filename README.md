@@ -128,13 +128,23 @@ my-project/                              # 项目 Studio 根目录
 │
 └── requirements/                        # 每个需求独立目录
     ├── 批量导出/
-    │   ├── prd-draft.md                 # PRD 草稿
-    │   ├── prd-context.md               # 需求上下文（跨会话记忆）
-    │   ├── review/                      # PRD 审查报告
-    │   ├── prototype/                   # HTML 高保真原型
-    │   ├── tech-design.md               # 技术方案
-    │   ├── code-gen-report.md           # 代码生成报告
-    │   └── code-review/                 # 代码审查报告
+    │   ├── prd-draft.md                 # prd-draft 产出：结构化 PRD
+    │   ├── prd-context.md               # prd-draft 产出：跨会话需求记忆
+    │   ├── review/                      # prd-review 产出
+    │   │   ├── review-summary.md        #   总览报告
+    │   │   ├── 功能清单.md               #   按模块的详细检查
+    │   │   ├── 业务流程图.md             #   ...
+    │   │   └── ...
+    │   ├── prototype/                   # proto-gen 产出
+    │   │   ├── index.html               #   入口页面
+    │   │   ├── list.html                #   列表页
+    │   │   ├── detail.html              #   详情页
+    │   │   └── ...
+    │   ├── tech-design.md               # tech-design 产出：接口设计、DDL、任务拆解
+    │   ├── code-gen-report.md           # code-gen 产出：生成了哪些文件、改了哪些代码
+    │   └── code-review/                 # code-review 产出
+    │       ├── review-summary.md        #   总览报告
+    │       └── {仓库名}.md              #   按仓库的详细审查
     └── 权限管理/
         └── ...                          # 同上结构
 ```
