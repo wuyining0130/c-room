@@ -99,7 +99,7 @@ mkdir my-project && cd my-project
    ```
    产出：`requirements/批量导出/` — PRD、原型、技术方案、代码审查报告
 
-> **补充说明**：`project-import` 和 `knowledge-init` 两个 skill 面向没有完整编码知识库的场景——比如你接手一个陌生项目，需要先导入资料、生成面向写 PRD 的知识库。如果你已经有了 `coding-knowledge/`，可以跳过这两步，直接从写需求开始。
+> **补充说明**：`project-import` 和 `knowledge-init` 两个 skill 面向没有完整编码知识库的场景——比如你接手一个陌生项目，需要先导入资料、生成面向写 PRD 的知识库。如果你已经有了 `coding-knowledge/`，其中的 `business/prd-reference/` 已经包含了写 PRD 所需的现有功能、业务流程、角色权限等参考资料，可以跳过这两步，直接从写需求开始。
 
 ### Studio 最终目录结构
 
