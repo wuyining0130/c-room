@@ -99,8 +99,28 @@ PRD 写好了，但开发和业务方对"页面长什么样"的理解往往不�
 
   /* 阴影 */
   --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+
+  /* 布局尺寸 */
+  --sidebar-width: 200px;
+  --header-height: 48px;
 }
+
+/* ===== 基础重置 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: var(--font-size-base); color: var(--color-text); }
+
+/* ===== 核心布局（必须严格遵守，不得覆盖） ===== */
+.layout { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+.sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); height: 100vh; overflow-y: auto; background: #001529; color: #fff; }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.header { height: var(--header-height); min-height: var(--header-height); display: flex; align-items: center; padding: 0 var(--spacing-lg); background: var(--color-bg-white); border-bottom: 1px solid var(--color-border); }
+.content { flex: 1; overflow-y: auto; padding: var(--spacing-lg); background: var(--color-bg); }
 ```
+
+**布局规则（生成页面时必须遵守）**：
+- 每个页面的 HTML 结构必须是 `.layout > .sidebar + .main > .header + .content`
+- `.main` 用 `flex: 1; min-width: 0` 撑满侧边栏右侧的全部剩余空间，**禁止给 .main 或 .content 设置 max-width 或固定宽度**
+- 内容区 `.content` 内部可以放卡片容器，但卡片也应 `width: 100%`，不要用 `max-width` 限制
 
 如果从前端代码中提取到了实际的样式参数，用提取到的值替换上述默认值。
 
@@ -118,10 +138,43 @@ PRD 写好了，但开发和业务方对"页面长什么样"的理解往往不�
 
 ### Step 3: 逐页生成 HTML
 
-每个页面一个独立的 HTML 文件。每个文件：
+每个页面一个独立的 HTML 文件，必须使用以下骨架结构：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{页面标题} - {模块名}</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="layout">
+    <div class="sidebar">
+      <!-- 侧边栏导航，当前页高亮，链接到其他页面 -->
+    </div>
+    <div class="main">
+      <div class="header">
+        <!-- 面包屑 / 页面标题 -->
+      </div>
+      <div class="content">
+        <!-- 页面主体内容 -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+```
+
+**严格要求**：
+- HTML 结构必须是 `.layout > .sidebar + .main > .header + .content`，不得嵌套额外的容器层
+- 不得在 `<style>` 标签中覆盖 `.layout`、`.sidebar`、`.main`、`.header`、`.content` 的布局属性
+- 侧边栏导航必须包含所有页面的 `<a>` 链接，当前页用 `.active` 类标记
+
+每个文件：
 - 引用共享的 `styles.css`
-- 包含完整的页面布局（侧边栏、顶栏、内容区）
-- 侧边栏的导航菜单高亮当前页面
+- 侧边栏的导航菜单高亮当前页面，其他页面可点击跳转
 - 使用真实的示例数据（不是 lorem ipsum），基于 PRD 中的数据模型生成
 - 表单字段的类型和约束与 PRD 数据模型一致
 - 包含基本的交互效果（用纯 JS 实现，不依赖外部库）：
@@ -205,15 +258,17 @@ requirements/{模块名}/prototype/
 ## 与其他 skill 的关系
 
 ```
-project-import → knowledge-init → prd-craft → prd-review → proto-gen
-                                                               ↑
-                                                    PRD 终稿作为输入
+coding-knowledge-init → prd-draft → prd-review → proto-gen
+                                                      ↑
+                                           PRD 终稿作为输入
 ```
 
-- **前置**：`prd-craft` 或 `prd-review` 产出的 PRD 终稿
-- **辅助**：`knowledge-init` 生成的 `prd-knowledge/` 中的 `design-patterns.md` 提供现有交互模式参考
+- **前置**：`prd-draft` 或 `prd-review` 产出的 PRD 终稿
+- **辅助**：`coding-knowledge/business/prd-reference/design-patterns.md` 提供现有交互模式参考
 
 ## Common Pitfalls
+
+**布局不撑满全屏**：最常见的问题。原因通常是：给 `.main` 或 `.content` 设了 `max-width`、用了 `margin: 0 auto` 居中、或在 `.layout` 外面多套了一层容器。必须严格使用 styles.css 中定义的核心布局类，不要在页面内用 `<style>` 覆盖布局属性。
 
 **一个文件塞所有页面**：多页面合并到一个 HTML 文件会导致难以维护和单独微调。每页一个文件是刻意的设计选择。
 
