@@ -17,7 +17,7 @@ PRD 写好了，但开发和业务方对"页面长什么样"的理解往往不�
 
 ## 输入
 
-- PRD 文件路径（Markdown 格式，通常是 `prd-craft` 或手写的 PRD 终稿）
+- PRD 文件路径（Markdown 格式，通常是 `prd-draft` 或手写的 PRD 终稿）
 - 项目前端代码（用于提取组件样式，非必须）
 
 ## 工作流程
@@ -124,17 +124,75 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 
 如果从前端代码中提取到了实际的样式参数，用提取到的值替换上述默认值。
 
-样式文件还应包含以下常用组件的样式定义：
-- **布局**：侧边栏 + 顶栏 + 内容区的经典 B 端布局
-- **表格**：表头、行、斑马纹、操作列
-- **表单**：标签 + 输入框布局、必填标记、校验提示
-- **弹窗**：遮罩、弹窗容器、标题栏、底部按钮
-- **按钮**：主要/次要/危险/禁用状态
-- **搜索栏**：搜索条件 + 搜索/重置按钮
-- **分页器**：页码、每页条数、总数
-- **标签/状态**：不同颜色的状态标签
-- **面包屑**：页面层级导航
-- **消息提示**：成功/失败/警告提示条
+样式文件还应包含以下常用组件的样式定义（以下为关键组件的参考实现，生成时以此为基础扩展）：
+
+```css
+/* ===== 表格 ===== */
+.table-container { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--color-bg-white); }
+th { background: #fafafa; font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
+td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
+tr:hover td { background: #fafafa; }
+
+/* ===== 表单 ===== */
+.form-group { display: flex; align-items: flex-start; margin-bottom: var(--spacing-lg); }
+.form-label { width: 120px; min-width: 120px; text-align: right; padding-right: 12px; line-height: 32px; color: var(--color-text); }
+.form-label .required { color: var(--color-danger); margin-right: 4px; }
+.form-control { flex: 1; min-width: 0; }
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+  width: 100%; height: 32px; padding: 4px 11px; border: 1px solid var(--color-border);
+  border-radius: var(--border-radius); font-size: var(--font-size-base); outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
+textarea { height: auto; min-height: 64px; }
+
+/* ===== 按钮 ===== */
+.btn { display: inline-flex; align-items: center; height: 32px; padding: 0 15px; border: 1px solid var(--color-border); border-radius: var(--border-radius); cursor: pointer; font-size: var(--font-size-base); background: var(--color-bg-white); }
+.btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
+
+/* ===== 弹窗 ===== */
+.modal-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; }
+.modal-mask.active { display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--color-bg-white); border-radius: var(--border-radius); width: 520px; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--color-border); }
+.modal-body { padding: 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 24px; border-top: 1px solid var(--color-border); }
+
+/* ===== 搜索栏 ===== */
+.search-bar { display: flex; flex-wrap: wrap; gap: var(--spacing-md); padding: var(--spacing-md); background: var(--color-bg-white); border-radius: var(--border-radius); margin-bottom: var(--spacing-md); }
+.search-bar .search-item { display: flex; align-items: center; gap: 8px; }
+.search-bar .search-item label { white-space: nowrap; color: var(--color-text-secondary); }
+.search-actions { display: flex; gap: 8px; margin-left: auto; }
+
+/* ===== 分页器 ===== */
+.pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 0; }
+.pagination .page-info { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+/* ===== 状态标签 ===== */
+.tag { display: inline-block; padding: 0 8px; font-size: var(--font-size-sm); line-height: 22px; border-radius: 2px; }
+.tag-success { color: var(--color-success); background: #f6ffed; border: 1px solid #b7eb8f; }
+.tag-warning { color: var(--color-warning); background: #fffbe6; border: 1px solid #ffe58f; }
+.tag-danger { color: var(--color-danger); background: #fff2f0; border: 1px solid #ffccc7; }
+.tag-default { color: var(--color-text-secondary); background: #fafafa; border: 1px solid var(--color-border); }
+.tag-processing { color: var(--color-primary); background: #e6f7ff; border: 1px solid #91d5ff; }
+
+/* ===== 面包屑 ===== */
+.breadcrumb { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+.breadcrumb a { color: var(--color-text-secondary); text-decoration: none; }
+.breadcrumb a:hover { color: var(--color-primary); }
+.breadcrumb .separator { margin: 0 8px; }
+
+/* ===== 卡片 ===== */
+.card { background: var(--color-bg-white); border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: var(--spacing-lg); margin-bottom: var(--spacing-md); width: 100%; }
+.card-title { font-size: var(--font-size-lg); font-weight: 500; margin-bottom: var(--spacing-md); }
+
+/* ===== 操作栏 ===== */
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); }
+```
+
+生成 styles.css 时以上述为基础，根据实际页面需求扩展（如 Tab 切换、描述列表等）。如果从前端代码中提取到了实际样式参数，替换对应的值。
 
 ### Step 3: 逐页生成 HTML
 
@@ -212,13 +270,12 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 
 ### Step 4: 生成导航入口页 (index.html)
 
-```html
-<!-- index.html 结构 -->
-- 项目名称和模块名称
-- 页面列表（带缩略描述，点击跳转到对应页面）
-- 业务流程概览（展示页面间的流转关系）
-- 角色说明（不同角色的权限差异）
-```
+index.html 使用同样的 `.layout` 布局骨架，内容区展示：
+
+- **项目名称和模块名称**（作为页面标题）
+- **页面列表卡片**：每个页面一张卡片，包含页面名称、类型标签、一句话描述，点击跳转
+- **业务流程概览**：用文字或简单箭头描述页面间的流转关系（如"列表页 → 点击查看 → 详情页 → 点击编辑 → 表单页"）
+- **角色说明**（如 PRD 中有）：不同角色的权限差异摘要
 
 ### Step 5: 输出结构
 
