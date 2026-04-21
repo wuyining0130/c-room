@@ -1,5 +1,7 @@
 # C-ROOM
 
+[English](README.en.md) | 中文
+
 > 让 Claude Code 一条命令跑通「需求 → PRD → 原型 → 技术方案 → 代码 → 审查」全流程。
 
 C-ROOM 是一套开箱即用的 Claude Code Skill 集合。安装后，你只需要用自然语言描述需求，AI 就能帮你完成从产品到研发的完整闭环。
