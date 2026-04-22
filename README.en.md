@@ -101,8 +101,6 @@ Open Claude Code in this directory and run in order:
    ```
    Output: `requirements/batch-export/` — PRD, prototype, tech design, code review report
 
-> **Note**: `project-import` and `knowledge-init` are for scenarios without a full coding knowledge base — e.g., onboarding onto an unfamiliar project where you need to import materials and generate a PRD-focused knowledge base first. If you already have `coding-knowledge/`, its `business/prd-reference/` already contains existing features, business flows, and role permissions needed for PRD writing. You can skip these two steps and start directly with requirements.
-
 ### Final Studio Directory Structure
 
 ```
@@ -116,12 +114,6 @@ my-project/                              # Project Studio root
 │   ├── infra/                           # Infra layer (tech stack, middleware, conventions)
 │   ├── business/                        # Business layer (glossary, architecture, domains, PRD reference)
 │   └── repos/                           # Repo layer (per-repo architecture/symbols/call-chains/schemas)
-│
-├── prd-knowledge/                       # knowledge-init output (optional, used without coding knowledge base)
-│   ├── business-context.md
-│   ├── user-roles.md
-│   ├── existing-features.md
-│   └── ...
 │
 ├── repos/                               # Business code repos (git clone or symlink)
 │   ├── order-srv/
@@ -183,7 +175,7 @@ Just say it in Claude Code:
 
 | What you say | Skill triggered | What AI does |
 |-------------|----------------|-------------|
-| "Help me understand this project" | `knowledge-init` | Scans code and docs, generates structured knowledge base |
+| "Initialize coding knowledge base" | `coding-knowledge-init` | Scans code repos, generates 3-layer structured knowledge base |
 | "I want to build a new feature" | `prd-draft` | Asks 5-8 clarification questions, then outputs PRD |
 | "Check if this PRD has issues" | `prd-review` | 7-dimension validation, outputs graded report |
 | "Turn the PRD into pages" | `proto-gen` | Generates HTML hi-fi prototype, double-click to preview |
@@ -213,17 +205,11 @@ flowchart TD
         TD_ --> CG --> CR
     end
 
-    subgraph OPT["Optional (without coding knowledge base)"]
-        PI["project-import<br/>Import Project Materials"]
-        KI["knowledge-init<br/>Generate prd-knowledge/"]
-        PI --> KI
-    end
-
     CKI -->|prd-reference| PD
     CKI -.->|reference| TD_
     CKI -.->|reference| CG
+    CKI -.->|reference| CR
     PG --> TD_
-    KI -.->|replaces prd-reference| PD
 ```
 
 ## Skill List
@@ -232,8 +218,6 @@ flowchart TD
 |-------|------------|
 | `conventions` | Shared conventions: directory standards, knowledge base structure, PRD templates, issue grading |
 | `coding-knowledge-init` | Scans multiple code repos, generates 3-layer structured technical knowledge base |
-| `project-import` | Paste a link, auto-fetch project materials |
-| `knowledge-init` | Scans code and docs, generates PRD-focused knowledge base |
 | `prd-draft` | Guided clarification + auto-generated structured PRD |
 | `prd-review` | 7-module validation + knowledge base cross-check |
 | `proto-gen` | Generates B2B HTML hi-fi prototype from PRD |
@@ -249,8 +233,6 @@ c-room/
 └── skills/
     ├── conventions/              # Shared conventions
     ├── coding-knowledge-init/    # Coding knowledge base init
-    ├── project-import/           # Project material import
-    ├── knowledge-init/           # PRD knowledge base init
     ├── prd-draft/                # PRD draft generation
     ├── prd-review/               # PRD completeness check
     ├── proto-gen/                # Prototype generation

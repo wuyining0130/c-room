@@ -316,12 +316,12 @@ requirements/{模块名}/
 coding-knowledge-init                         ← 第零步：项目地图
   生成 coding-knowledge/
         ↓ (审查基准)
-project-import → knowledge-init → prd-draft → prd-review → proto-gen
-                                                                ↓
-                                              tech-design → code-gen → code-review
-                                                                         ↑
-                                                               coding-knowledge/
-                                                               (项目级审查标准)
+prd-draft → prd-review → proto-gen
+                                  ↓
+                tech-design → code-gen → code-review
+                                           ↑
+                                 coding-knowledge/
+                                 (项目级审查标准)
 ```
 
 - **核心依赖**：`coding-knowledge/` 提供项目级的审查标准——不是通用的"最佳实践"，而是这个项目的实际编码模式。symbols.md 提供"好代码的参考答案"，architecture.md 定义职责边界，code-quality.md 定义编码规范

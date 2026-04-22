@@ -5,7 +5,7 @@ description: >-
   研发阶段 coding-knowledge 统一使用策略、问题分级标准等。
   当用户提到"这套工作流怎么用"、"流程是什么"、"目录结构"、"skill 系列"、"需求工作流"、
   "从导入到代码审查的流程"、"编码管线怎么用"时使用此 skill。
-  其他系列 skill（project-import、knowledge-init、coding-knowledge-init、prd-draft、prd-review、
+  其他系列 skill（coding-knowledge-init、prd-draft、prd-review、
   proto-gen、tech-design、code-gen、code-review、tapd-sync）遇到约定相关问题时也应参考此 skill。
 ---
 
@@ -24,10 +24,10 @@ flowchart TD
     end
 
     subgraph PRD["需求阶段（面向产品）"]
-        PI["project-import<br/>导入项目资料"] --> KI["knowledge-init<br/>生成 prd-knowledge/"]
-        KI --> PD["prd-draft<br/>澄清+写草稿"]
-        PD --> PR["prd-review<br/>完整性检查"]
-        PR --> PG["proto-gen<br/>生成原型"]
+        PD["prd-draft<br/>澄清+写草稿"]
+        PR["prd-review<br/>完整性检查"]
+        PG["proto-gen<br/>生成原型"]
+        PD --> PR --> PG
     end
 
     subgraph DEV["研发阶段（面向开发）"]
@@ -37,7 +37,7 @@ flowchart TD
         TD_ --> CG --> CR
     end
 
-    CKI -.->|参考| KI
+    CKI -.->|"PRD 参考知识"| PD
     CKI -.->|核心输入| TD_
     PG --> TD_
     CKI -.->|深度利用| CG
@@ -47,35 +47,26 @@ flowchart TD
 **三个阶段**：
 
 - **第零步（项目地图）**：`coding-knowledge-init` 扫描代码仓库生成 `coding-knowledge/`，是整个体系的地基。一个项目只需执行一次，代码架构有大变动时重新执行。
-- **需求阶段（PRD 管线）**：从项目资料到原型，面向产品需求分析。每个环节的产出是下一个环节的输入。
+- **需求阶段（PRD 管线）**：从需求描述到原型，面向产品需求分析。`prd-draft` → `prd-review` → `proto-gen` 线性推进。
 - **研发阶段（编码管线）**：从技术方案到代码实现再到代码审查，面向开发落地。
 
 **coding-knowledge 是地基**：
 
 `coding-knowledge/` 贯穿整个体系，不是某个阶段的专属工具：
-- `knowledge-init` 参考它生成更精确的 `prd-knowledge/`
+- `prd-draft` 读取 `business/prd-reference/` 理解现有系统，生成更精准的澄清问题
 - `tech-design` 以它为核心输入做改动范围定位和接口设计
 - `code-gen` 深度利用它学习项目编码模式，生成风格一致的代码
 - `code-review` 以它为审查基准，用项目标准（而非通用最佳实践）审查代码
-
-**两套知识库各司其职，不合并**：
-
-| 知识库 | 视角 | 用途 | 冲突时 |
-|--------|------|------|--------|
-| `prd-knowledge/` | 业务语义、产品上下文 | 写 PRD、评审需求 | — |
-| `coding-knowledge/` | 代码架构、符号索引、调用链 | 写技术方案、写代码、审查代码 | 以此为准（基于实际代码分析） |
-
-用户可以从任意环节开始（比如已有代码直接跑 knowledge-init），但完整走一遍效果最好。
 
 ---
 
 ## 1. 项目根目录
 
-**项目根目录**是 `{project_name}/` 目录，即 `sources/` 的父目录。所有 skill 的输入/输出路径都相对于此目录。
+**项目根目录**是 `{project_name}/` 目录。所有 skill 的输入/输出路径都相对于此目录。
 
 判断优先级：
-1. 如果当前工作目录下存在 `sources/` 目录 → 当前目录即为项目根目录
-2. 如果当前工作目录下存在 `prd-knowledge/` 或 `coding-knowledge/` 目录 → 当前目录即为项目根目录
+1. 如果当前工作目录下存在 `coding-knowledge/` 目录 → 当前目录即为项目根目录
+2. 如果当前工作目录下存在 `requirements/` 目录 → 当前目录即为项目根目录
 3. 否则 → 使用当前工作目录
 
 ---
@@ -118,6 +109,11 @@ coding-knowledge/
 │   ├── INDEX.md
 │   ├── overall-architecture.md       # 整体业务架构与服务拓扑
 │   ├── glossary.md                   # 业务术语表
+│   ├── prd-reference/                # PRD 参考知识（需求阶段的业务上下文）
+│   │   ├── existing-features.md
+│   │   ├── business-flows.md
+│   │   ├── user-roles.md
+│   │   └── design-patterns.md
 │   └── domains/                      # 细分业务架构
 │       └── {domain-name}/
 │           ├── overview.md           # 领域概述、核心流程
@@ -137,7 +133,7 @@ coding-knowledge/
 | 层 | 核心文件 | 下游 skill 如何使用 |
 |----|---------|---------------------|
 | infra | `code-quality.md` | code-gen/code-review：全局编码规范基准 |
-| business | `glossary.md`, `cross-service.md` | tech-design：跨服务调用关系；knowledge-init：业务语义参考 |
+| business | `glossary.md`, `cross-service.md` | tech-design：跨服务调用关系；prd-draft：业务语义参考 |
 | repos | `symbols.md` | tech-design：精确定位代码位置；code-gen：风格学习入口；code-review：审查参考 |
 | repos | `architecture.md` | tech-design：判断功能归属和职责边界；code-gen：确定新文件包路径 |
 | repos | `database-schema.md` | tech-design：参考建表风格；code-gen：复刻字段命名规范 |
@@ -145,21 +141,11 @@ coding-knowledge/
 
 ---
 
-## 4. prd-knowledge/ 标准文件清单
+## 3.5 PRD 参考知识路径
 
-`knowledge-init` 生成的 PRD 知识库目录，位于项目根目录下：
+需求阶段的 skill（prd-draft、prd-review、proto-gen）加载 PRD 参考知识时，统一从 `coding-knowledge/business/prd-reference/` 读取。
 
-| 文件 | 内容 | 下游 skill 如何使用 |
-|------|------|---------------------|
-| `architecture.md` | 技术栈、模块划分、部署结构 | prd-draft: 判断技术可行性 |
-| `glossary.md` | 业务术语定义和关系 | prd-draft/prd-review: 确保术语一致 |
-| `user-roles.md` | 用户角色、权限矩阵 | prd-draft/prd-review: 权限设计参考 |
-| `data-model.md` | 核心实体、字段、关系、约束 | prd-draft/prd-review: 数据模型校验 |
-| `existing-features.md` | 现有功能清单（按模块） | prd-draft/prd-review: 避免重复建设 |
-| `api-inventory.md` | 接口清单（URL、方法、参数） | prd-review: 检查接口影响 |
-| `design-patterns.md` | 已有交互模式和 UI 组件 | proto-gen: 参考现有风格 |
-| `business-flows.md` | 核心业务流程（Mermaid 语法） | prd-draft/prd-review: 流程衔接 |
-| `knowledge-gaps.md` | 知识库完整性检查报告 | 用户参考，决定是否补充 |
+该目录包含：`existing-features.md`、`business-flows.md`、`user-roles.md`、`design-patterns.md`。
 
 ---
 
@@ -169,12 +155,11 @@ coding-knowledge/
 
 ```
 {project_root}/
-├── sources/                          # project-import 产出
-├── prd-knowledge/                    # knowledge-init 产出
 ├── coding-knowledge/                 # coding-knowledge-init 产出（第零步）
 └── requirements/
     └── {模块名}/                     # 如"知识管理"、"FAQ管理"
         ├── prd-draft.md              # prd-draft 产出
+        ├── prd-context.md            # 需求决策基线（prd-draft 自动维护）
         ├── review/                   # prd-review 产出
         │   ├── review-summary.md     # 总览报告
         │   ├── 需求背景.md
@@ -212,17 +197,15 @@ coding-knowledge/
 
 | Skill | 输入 | 输出 |
 |-------|------|------|
-| project-import | TAPD 链接 / Git 仓库地址 | `{project_root}/sources/` |
-| knowledge-init | `sources/` + `coding-knowledge/`(参考) | `{project_root}/prd-knowledge/` |
-| prd-draft | 用户需求描述 + `prd-knowledge/` + `coding-knowledge/`(可选参考) | `requirements/{模块名}/prd-draft.md` |
-| prd-review | `requirements/{模块名}/prd-draft.md` + `prd-knowledge/` | `requirements/{模块名}/review/` |
+| prd-draft | 用户需求描述 + `coding-knowledge/`(如有) | `requirements/{模块名}/prd-draft.md` + `prd-context.md` |
+| prd-review | `requirements/{模块名}/prd-draft.md` + `coding-knowledge/`(如有) | `requirements/{模块名}/review/` |
 | proto-gen | `requirements/{模块名}/prd-draft.md` + 前端代码 | `requirements/{模块名}/prototype/` |
 
 ### 研发阶段
 
 | Skill | 输入 | 输出 |
 |-------|------|------|
-| tech-design | `prd-draft.md` + `prototype/` + `prd-knowledge/` + `coding-knowledge/` + 后端代码 | `requirements/{模块名}/tech-design.md` |
+| tech-design | `prd-draft.md` + `prototype/` + `coding-knowledge/` + 后端代码 | `requirements/{模块名}/tech-design.md` |
 | code-gen | `tech-design.md` + `prd-draft.md` + `prototype/` + `coding-knowledge/` + 源码仓库 | 代码变更 + `requirements/{模块名}/code-gen-report.md` |
 | code-review | 代码变更 + `tech-design.md` + `prd-draft.md` + `coding-knowledge/` | `requirements/{模块名}/code-review/` |
 
@@ -265,7 +248,7 @@ coding-knowledge/
 
 - **标准从项目中来**：不用通用最佳实践，用这个项目的实际编码模式
 - **风格对照而非风格发明**：如果整个项目都用 `@Autowired`，新代码用 `@Autowired` 就不是问题
-- **冲突时以 coding-knowledge 为准**：它基于实际代码分析，比 prd-knowledge 的业务推断更可靠
+- **冲突时以 coding-knowledge 为准**：它基于实际代码分析，比其他来源更可靠
 
 ---
 
@@ -300,17 +283,33 @@ prd-review、code-review 共用同一套三级分级体系：
 0. `coding-knowledge-init` — 扫描代码仓库，生成 `coding-knowledge/` 编码知识库。这是整个体系的地基，建议最先执行。
 
 **需求阶段（PRD 管线）：**
-1. `project-import` — 粘贴 TAPD 链接或 Git 仓库地址，自动拉取项目资料
-2. `knowledge-init` — 扫描代码和文档，参考 `coding-knowledge/` 生成 `prd-knowledge/` 知识库
-3. `prd-draft` — 描述你的需求，AI 先澄清模糊点再生成 PRD 草稿
-4. `prd-review` — 检查草稿完整性，按阻塞/建议/提示分级
-5. 修改 PRD → 重跑 `prd-review` → 直到阻塞清零
-6. `proto-gen` — 基于 PRD 终稿生成 HTML 原型
+1. `prd-draft` — 描述你的需求，AI 先澄清模糊点再生成 PRD 草稿
+2. `prd-review` — 检查草稿完整性，按阻塞/建议/提示分级
+3. 修改 PRD → 重跑 `prd-review` → 直到阻塞清零
+4. `proto-gen` — 基于 PRD 终稿生成 HTML 原型
 
 **研发阶段（编码管线）：**
-7. `tech-design` — 基于 PRD + 原型 + 两套知识库生成技术方案（改动范围、接口设计、DDL、任务拆解）
-8. `code-gen` — 基于技术方案 + PRD + 原型 + 编码知识库，在目标仓库中生成完整业务代码
-9. `code-review` — 四维度审查：需求覆盖、技术方案合规、代码质量、安全与性能
-10. `tapd-sync` — 将 PRD 或技术方案同步到 TAPD 需求单
+5. `tech-design` — 基于 PRD + 原型 + 编码知识库生成技术方案（改动范围、接口设计、DDL、任务拆解）
+6. `code-gen` — 基于技术方案 + PRD + 原型 + 编码知识库，在目标仓库中生成完整业务代码
+7. `code-review` — 四维度审查：需求覆盖、技术方案合规、代码质量、安全与性能
+8. `tapd-sync` — 将 PRD 或技术方案同步到 TAPD 需求单
+
+**简化路径：** 没有 `coding-knowledge/` 也能用。`prd-draft` 会正常工作，只是澄清问题会更泛化、无法自动引用现有系统信息。最小可用路径：直接运行 `prd-draft` → `prd-review` → `proto-gen`。
 
 **只用其中一个 skill：** 每个 skill 都可以独立使用，只是没有知识库时分析精度会下降。
+
+---
+
+## 10.5 CLAUDE.md 管理
+
+以下 skill 会写入或更新项目根目录的 CLAUDE.md：
+
+| Skill | 写入内容 | 触发条件 |
+|-------|---------|---------|
+| coding-knowledge-init | AI Coding 知识库使用指引 | 知识库生成/更新后 |
+| prd-draft | PRD 文件守护规则 | 首次生成 PRD 后 |
+
+写入规则：
+- 各 skill 只管理自己的 section，不删除其他 skill 写入的内容
+- 用 `## {Section 标题}` 作为 section 边界标识
+- 写入前先 Read CLAUDE.md 检查是否已有该 section，有则更新，无则追加
