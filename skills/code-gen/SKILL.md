@@ -289,12 +289,12 @@ requirements/{模块名}/
 coding-knowledge-init                         ← 第零步：项目地图
   生成 coding-knowledge/
         ↓ (参考)
-project-import → knowledge-init → prd-draft → prd-review → proto-gen
-                                                                ↓
-                                              tech-design → code-gen → code-review
-                                                             ↑
-                                                     coding-knowledge/
-                                                     (深度利用)
+prd-draft → prd-review → proto-gen
+                                  ↓
+                tech-design → code-gen → code-review
+                               ↑
+                       coding-knowledge/
+                       (深度利用)
 ```
 
 - **前置**：`tech-design` 的技术方案是主要输入；`coding-knowledge-init` 的编码知识库是核心参考

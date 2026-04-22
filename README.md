@@ -101,8 +101,6 @@ mkdir my-project && cd my-project
    ```
    产出：`requirements/批量导出/` — PRD、原型、技术方案、代码审查报告
 
-> **补充说明**：`project-import` 和 `knowledge-init` 两个 skill 面向没有完整编码知识库的场景——比如你接手一个陌生项目，需要先导入资料、生成面向写 PRD 的知识库。如果你已经有了 `coding-knowledge/`，其中的 `business/prd-reference/` 已经包含了写 PRD 所需的现有功能、业务流程、角色权限等参考资料，可以跳过这两步，直接从写需求开始。
-
 ### Studio 最终目录结构
 
 ```
@@ -116,12 +114,6 @@ my-project/                              # 项目 Studio 根目录
 │   ├── infra/                           # 基础技术层（技术栈、中间件、分层规范）
 │   ├── business/                        # 业务层（术语表、架构、业务域、PRD参考）
 │   └── repos/                           # 代码仓库层（每个仓库的架构/符号/调用链/表结构）
-│
-├── prd-knowledge/                       # knowledge-init 产出（可选，无编码知识库时使用）
-│   ├── business-context.md              # 业务上下文
-│   ├── user-roles.md                    # 用户角色
-│   ├── existing-features.md             # 现有功能
-│   └── ...
 │
 ├── repos/                               # 业务代码仓库（git clone 或软链接）
 │   ├── order-srv/
@@ -183,7 +175,7 @@ AI 会通过 git diff 判断哪些仓库有变更，只重新扫描和更新受�
 
 | 你说的话 | 触发的 Skill | AI 帮你做的事 |
 |---------|-------------|-------------|
-| "帮我了解一下这个项目" | `knowledge-init` | 扫描代码和文档，生成结构化知识库 |
+| "帮我初始化编码知识库" | `coding-knowledge-init` | 扫描代码仓库，生成三层结构化知识库 |
 | "我要做一个新功能" | `prd-draft` | 先问你 5-8 轮澄清问题，再输出 PRD |
 | "看看这个 PRD 有没有问题" | `prd-review` | 7 个维度逐项校验，输出分级报告 |
 | "把 PRD 变成页面" | `proto-gen` | 生成 HTML 高保真原型，双击即可预览 |
@@ -213,17 +205,11 @@ flowchart TD
         TD_ --> CG --> CR
     end
 
-    subgraph OPT["可选（无编码知识库时）"]
-        PI["project-import<br/>导入项目资料"]
-        KI["knowledge-init<br/>生成 prd-knowledge/"]
-        PI --> KI
-    end
-
     CKI -->|prd-reference| PD
-    CKI -.->|参考| TD_
-    CKI -.->|参考| CG
+    CKI -.->|核心输入| TD_
+    CKI -.->|深度利用| CG
+    CKI -.->|审查基准| CR
     PG --> TD_
-    KI -.->|替代 prd-reference| PD
 ```
 
 ## Skill 清单
@@ -232,8 +218,6 @@ flowchart TD
 |-------|----------|
 | `conventions` | 全流程共享约定：目录规范、知识库结构、PRD 模板、问题分级 |
 | `coding-knowledge-init` | 扫描多个代码仓库，生成三层分层技术知识库 |
-| `project-import` | 粘贴链接，自动拉取项目资料 |
-| `knowledge-init` | 扫描代码和文档，生成面向写 PRD 的知识库 |
 | `prd-draft` | 引导式澄清 + 自动生成结构化 PRD |
 | `prd-review` | 7 模块逐项校验 + 知识库交叉检查 |
 | `proto-gen` | 基于 PRD 生成 B 端 HTML 高保真原型 |
@@ -249,8 +233,6 @@ c-room/
 └── skills/
     ├── conventions/              # 共享约定
     ├── coding-knowledge-init/    # 编码知识库初始化
-    ├── project-import/           # 项目资料导入
-    ├── knowledge-init/           # PRD 知识库初始化
     ├── prd-draft/                # 需求草稿生成
     ├── prd-review/               # 需求完整性检查
     ├── proto-gen/                # 原型生成

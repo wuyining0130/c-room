@@ -20,6 +20,8 @@ SKILLS=(
     tapd-sync
     tech-design
 )
+# Note: knowledge-init and project-import are kept in the uninstall list
+# to clean up installations from older versions.
 
 count=0
 for skill_name in "${SKILLS[@]}"; do
