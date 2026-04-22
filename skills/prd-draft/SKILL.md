@@ -574,13 +574,13 @@ PRD 各章节有明确的信息归属，**同一信息只在归属章节完整�
 ```
 project-import → knowledge-init → prd-draft → [prd-review] → [proto-gen]
                                      ↑    ↑         |
-                                     │    └─ 修改模式 ←┘
-                                     └── 补充后再生成 ←┘
+                                     │    └─ 修改模式 ←┘  (review 驱动)
+                                     └──── 修改模式 ←── 用户直接改（最常见）
 ```
 
 - **前置**：`knowledge-init` 提供项目上下文（非必须，没有也能用，只是澄清问题会更泛化）
-- **后续**：`prd-review` 检查草稿完整性，`proto-gen` 基于终稿生成原型
-- **闭环**：prd-review 发现问题 → prd-draft 修改模式修复 → 再次 prd-review 验证
+- **后续**：`prd-review` 检查草稿完整性（可选），`proto-gen` 基于终稿生成原型
+- **迭代**：修改模式最常见的触发是用户直接提出修改意见，prd-review 驱动的修复是另一种路径
 
 ## Common Pitfalls
 
