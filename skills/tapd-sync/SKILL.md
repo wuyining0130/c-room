@@ -108,12 +108,7 @@ Playwright 用于本地高清 Mermaid 渲染（可选，未安装时自动回退
 
 ## 与其他 skill 的关系
 
-```
-prd-draft / tech-design → tapd-sync → TAPD 需求单
-```
-
-- 通常在 prd-draft 或 tech-design 生成文档后使用
-- 将本地 Markdown 产出物同步到 TAPD 供团队查看
+通常在 prd-draft 或 tech-design 生成文档后使用，将本地 Markdown 产出物同步到 TAPD 供团队查看。
 
 ## Common Pitfalls
 

@@ -46,17 +46,9 @@ description: >-
 
 #### 1.3 深度读取 coding-knowledge（构建项目级审查标准）
 
-这是 code-review 与通用 lint 工具最大的差异。不是用通用规则检查代码，而是**用项目自己的编码模式作为审查标准**。
+按 conventions Section 7 的三层策略读取（infra → repos → business）。code-review 的侧重点是**用项目自己的编码模式作为审查标准**，而非通用 lint 规则。
 
-**第一层：编码规范（全局标准）**
-
-读取 `coding-knowledge/infra/`：
-- `code-quality.md` → 团队的命名规范、注释要求、异常处理模式、日志规范、分层约束
-- 其他基础设施规范 → 中间件使用方式（MQ 消息格式、缓存操作模式）
-
-**第二层：仓库级标准（按涉及仓库读取）**
-
-对变更涉及的每个仓库，读取 `coding-knowledge/repos/{repo}/`：
+**审查时各文件的用法**：
 
 | 文件 | 审查时用来做什么 |
 |------|-----------------|
@@ -65,19 +57,7 @@ description: >-
 | `database-schema.md` | 检查新增索引是否合理；检查字段命名是否与现有表一致 |
 | `call-chains.md` | 检查跨服务调用方式是否与项目现有模式一致（Feign？RestTemplate？） |
 
-**第三层：风格对照（关键步骤）**
-
-从 symbols.md 中定位 **2-3 个同类型的现有实现文件**（如现有的 Controller、Service），用 Read 工具读取完整源码。这些文件就是审查的"参考答案"——新代码应该在以下方面与之一致：
-- 注解组合（@RestController + @RequestMapping 还是 @Controller + @ResponseBody）
-- 返回值包装（Result<T> 还是 ResponseEntity）
-- 依赖注入方式（构造器注入还是 @Autowired）
-- 异常处理模式（throw BusinessException 还是返回 error code）
-- 分页实现（PageHelper 还是 IPage）
-- 参数校验方式（@Valid + JSR 303 还是手动校验）
-
-**与不读 coding-knowledge 的差距**：
-- 有 coding-knowledge → 审查标准是"这个项目的 Controller 都用构造器注入，你用了 @Autowired，不一致"
-- 没有 coding-knowledge → 只能检查"这个 Controller 有没有 bug"，无法检查风格一致性
+**风格对照（关键步骤）**：从 symbols.md 中定位 2-3 个同类型的现有实现文件，用 Read 读取完整源码作为审查的"参考答案"。
 
 #### 1.4 读取变更代码
 
@@ -299,30 +279,9 @@ tech_design_version: "{版本}"
 
 ## 输出目录
 
-```
-requirements/{模块名}/
-├── prd-draft.md              ← PRD 终稿（输入）
-├── tech-design.md            ← 技术方案（输入）
-├── code-gen-report.md        ← code-gen 产出（可选输入）
-└── code-review/              ← 本 skill 产出
-    ├── review-summary.md     ← 总览报告
-    ├── {仓库名-1}.md         ← 仓库级详细报告
-    └── {仓库名-2}.md
-```
+输出到 `requirements/{模块名}/code-review/`（完整目录结构见 conventions Section 5），包含 `review-summary.md` 总览报告和按仓库的 `{仓库名}.md` 详细报告。
 
 ## 与其他 skill 的关系
-
-```
-coding-knowledge-init                         ← 第零步：项目地图
-  生成 coding-knowledge/
-        ↓ (审查基准)
-prd-draft → prd-review → proto-gen
-                                  ↓
-                tech-design → code-gen → code-review
-                                           ↑
-                                 coding-knowledge/
-                                 (项目级审查标准)
-```
 
 - **核心依赖**：`coding-knowledge/` 提供项目级的审查标准——不是通用的"最佳实践"，而是这个项目的实际编码模式。symbols.md 提供"好代码的参考答案"，architecture.md 定义职责边界，code-quality.md 定义编码规范
 - **审查基准**：`tech-design.md` 定义接口应该是什么样、`prd-draft.md` 定义功能应该覆盖哪些、`coding-knowledge/` 定义代码应该怎么写
@@ -331,10 +290,7 @@ prd-draft → prd-review → proto-gen
 
 ## 审查原则
 
-**问题分级标准**（与 prd-review 一致）：
-- 🔴 **阻塞**：不修复不能合并。包括：安全漏洞、需求功能遗漏、接口参数不一致（会导致前后端对不上）、DDL 不一致（会导致运行报错）
-- 🟡 **建议**：建议修复但不阻塞合并。包括：与项目风格不一致（不影响功能但影响可维护性）、缺少必要注释、性能隐患、错误处理不完善
-- 🔵 **提示**：优化建议。包括：可选的代码重构、更优雅的实现方式
+问题分级标准见 conventions Section 9。
 
 **审查标准从项目实际中来**：每个审查意见都要有具体的参考依据——引用 PRD 的 F-XX 编号、tech-design 的 API-XX 编号、coding-knowledge 中的具体文件和规范条目、或同类型参考文件中的具体写法。不基于"我觉得应该..."提出问题。
 

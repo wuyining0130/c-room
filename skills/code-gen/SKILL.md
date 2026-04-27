@@ -47,27 +47,7 @@ description: >-
 
 #### 0.3 深度读取 coding-knowledge（核心步骤）
 
-这是 code-gen 与普通 AI 代码生成最大的差异。不是"读一下了解大概"，而是**按代码层逐层提取具体的编码模式**。
-
-**第一层：基础规范（必读）**
-
-读取 `coding-knowledge/infra/` 下的文件，提取全局编码约束：
-- `code-quality.md` → 命名规范（驼峰 vs 下划线、前缀后缀约定）、注释风格、异常处理模式、日志规范
-- 其他基础设施规范 → 中间件使用方式（MQ 生产消费模式、缓存操作方式）
-
-**第二层：仓库架构（按涉及仓库读取）**
-
-对 tech-design 中列出的每个仓库，读取 `coding-knowledge/repos/{repo}/` 下的文件：
-
-- `architecture.md` → **包结构和分层约定**。新建文件时据此确定放在哪个包下、类名如何命名。特别注意"本服务不负责"的描述——避免把不属于该服务的逻辑写进去
-- `symbols.md` → **现有类和方法的签名索引**。这是"风格学习"的入口——从中找到同类型的现有实现（如现有的 Controller、Service），后续 Phase 1 会据此 Read 完整源码
-- `database-schema.md` → **现有表的真实 DDL**。新建表时参考字段命名转换规则（如 `create_time` vs `createdAt`）、索引命名规范（如 `idx_` 前缀）、字符集和引擎设定
-- `call-chains.md` → **实际的跨服务调用代码**。如果 tech-design 涉及跨服务调用，从这里找到项目实际使用的调用方式（Feign Client？RestTemplate？WebClient？gRPC stub？），以及错误处理和超时配置的写法
-
-**第三层：业务域（按需读取）**
-
-如果 tech-design 涉及跨服务协作，读取 `coding-knowledge/business/domains/{domain}/`：
-- `cross-service.md` → 跨仓库调用关系和数据流向
+按 conventions Section 7 的三层策略读取（infra → repos → business）。code-gen 的侧重点是**学习编码模式**——不仅看签名，更要从中找到同类型参考文件的完整源码。
 
 #### 0.4 风格学习（关键步骤）
 
@@ -272,30 +252,9 @@ date: "{生成日期}"
 
 ## 输出目录
 
-```
-requirements/{模块名}/
-├── prd-draft.md              ← PRD 终稿（输入）
-├── review/                   ← prd-review 产出
-├── prototype/                ← proto-gen 产出
-├── tech-design.md            ← tech-design 产出（输入）
-└── code-gen-report.md        ← 本 skill 产出
-```
-
-实际代码变更直接写入目标仓库目录（不在 requirements/ 下）。
+输出到 `requirements/{模块名}/code-gen-report.md`（完整目录结构见 conventions Section 5）。实际代码变更直接写入目标仓库目录（不在 requirements/ 下）。
 
 ## 与其他 skill 的关系
-
-```
-coding-knowledge-init                         ← 第零步：项目地图
-  生成 coding-knowledge/
-        ↓ (参考)
-prd-draft → prd-review → proto-gen
-                                  ↓
-                tech-design → code-gen → code-review
-                               ↑
-                       coding-knowledge/
-                       (深度利用)
-```
 
 - **前置**：`tech-design` 的技术方案是主要输入；`coding-knowledge-init` 的编码知识库是核心参考
 - **后续**：生成的代码变更由 `code-review` 审查

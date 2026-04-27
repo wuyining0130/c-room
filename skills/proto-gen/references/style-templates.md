@@ -48,22 +48,34 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 /* ===== 核心布局（必须严格遵守，不得覆盖） ===== */
 .layout { display: flex; height: 100vh; width: 100%; overflow: hidden; }
 .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); height: 100vh; overflow-y: auto; background: #001529; color: #fff; }
-.main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-.header { height: var(--header-height); min-height: var(--header-height); display: flex; align-items: center; padding: 0 var(--spacing-lg); background: var(--color-bg-white); border-bottom: 1px solid var(--color-border); }
-.content { flex: 1; overflow-y: auto; padding: var(--spacing-lg); background: var(--color-bg); }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+
+/* ===== 页面视图切换 ===== */
+.page-view { display: none; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
+.page-view.active { display: flex; }
+.page-view .header { height: var(--header-height); min-height: var(--header-height); display: flex; align-items: center; padding: 0 var(--spacing-lg); background: var(--color-bg-white); border-bottom: 1px solid var(--color-border); }
+.page-view .content { flex: 1; overflow-y: auto; padding: var(--spacing-lg); background: var(--color-bg); }
 ```
 
 如果从前端代码中提取到了实际的样式参数，用提取到的值替换上述默认值。
 
 ### 组件样式参考
 
-样式文件还应包含以下常用组件的样式定义（以下为关键组件的参考实现，生成时以此为基础扩展）：
+`<style>` 中还应包含以下常用组件的样式定义（以下为关键组件的参考实现，生成时以此为基础扩展）：
 
 ```css
+/* ===== 侧边栏 ===== */
+.sidebar-title { padding: 16px 20px; font-size: var(--font-size-lg); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-menu { list-style: none; padding: 8px 0; }
+.sidebar-menu li a { display: block; padding: 10px 20px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: var(--font-size-base); transition: all 0.2s; cursor: pointer; }
+.sidebar-menu li a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.sidebar-menu li a.active { color: #fff; background: var(--color-primary); }
+.sidebar-section { padding: 12px 20px 6px; font-size: var(--font-size-sm); color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; }
+
 /* ===== 表格 ===== */
 .table-container { width: 100%; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; background: var(--color-bg-white); }
-th { background: #fafafa; font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
+th { background: #fafafa; font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--color-border); white-space: nowrap; }
 td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
 tr:hover td { background: #fafafa; }
 
@@ -80,9 +92,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-primary); 
 textarea { height: auto; min-height: 64px; }
 
 /* ===== 按钮 ===== */
-.btn { display: inline-flex; align-items: center; height: 32px; padding: 0 15px; border: 1px solid var(--color-border); border-radius: var(--border-radius); cursor: pointer; font-size: var(--font-size-base); background: var(--color-bg-white); }
+.btn { display: inline-flex; align-items: center; height: 32px; padding: 0 15px; border: 1px solid var(--color-border); border-radius: var(--border-radius); cursor: pointer; font-size: var(--font-size-base); background: var(--color-bg-white); transition: all 0.2s; gap: 6px; }
+.btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); color: #fff; }
+.btn-sm { height: 24px; padding: 0 8px; font-size: var(--font-size-sm); }
+.btn-link { border: none; background: none; color: var(--color-primary); padding: 0; height: auto; cursor: pointer; text-decoration: none; }
+.btn-link:hover { color: var(--color-primary-hover); }
 .btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
 
 /* ===== 弹窗 ===== */
@@ -123,15 +139,19 @@ textarea { height: auto; min-height: 64px; }
 
 /* ===== 操作栏 ===== */
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); }
+
+/* ===== 快速跳转栏（header 右侧） ===== */
+.quick-nav { display: flex; gap: 6px; align-items: center; }
+.quick-nav .qn-item { display: inline-flex; align-items: center; padding: 0 10px; height: 26px; font-size: 12px; border-radius: 13px; cursor: pointer; transition: all 0.15s; white-space: nowrap; background: #f5f5f5; color: #666; border: 1px solid #e8e8e8; }
+.quick-nav .qn-item:hover { background: #e6f7ff; color: #096dd9; border-color: #91d5ff; }
+.quick-nav .qn-item.qn-active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 ```
 
-生成 styles.css 时以上述为基础，根据实际页面需求扩展（如 Tab 切换、描述列表等）。如果从前端代码中提取到了实际样式参数，替换对应的值。
+生成 `<style>` 块时以上述为基础，根据实际页面需求扩展（如 Tab 切换、描述列表等）。如果从前端代码中提取到了实际样式参数，替换对应的值。
 
-## HTML 骨架与页面类型模板
+## HTML 骨架
 
-### HTML 骨架
-
-每个页面一个独立的 HTML 文件，必须使用以下骨架结构：
+单文件原型使用以下骨架结构：
 
 ```html
 <!DOCTYPE html>
@@ -139,33 +159,87 @@ textarea { height: auto; min-height: 64px; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{页面标题} - {模块名}</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>{模块名} - 原型</title>
+  <style>
+    /* 全局 CSS 变量 + 组件样式（全部内联） */
+  </style>
 </head>
 <body>
   <div class="layout">
     <div class="sidebar">
-      <!-- 侧边栏导航，当前页高亮，链接到其他页面 -->
+      <div class="sidebar-title">{模块名}</div>
+      <ul class="sidebar-menu">
+        <li><a class="active" onclick="showPage('index')">首页概览</a></li>
+        <li><a onclick="showPage('list')">列表页</a></li>
+        <li><a onclick="showPage('detail')">详情页</a></li>
+        <li><a onclick="showPage('form')">表单页</a></li>
+      </ul>
     </div>
     <div class="main">
-      <div class="header">
-        <!-- 面包屑 / 页面标题 -->
-      </div>
+      <!-- 动态 Header：左侧面包屑 + 右侧快速跳转栏 -->
+      <div class="header" id="pageHeader" style="justify-content: space-between;"></div>
+
       <div class="content">
-        <!-- 页面主体内容 -->
+        <!-- 首页概览 -->
+        <div class="page-view active" id="page-index">
+          <!-- 页面列表卡片 + 业务流程概览 -->
+        </div>
+
+        <!-- 列表页 -->
+        <div class="page-view" id="page-list">
+          <!-- 搜索栏 + 表格 + 分页 -->
+        </div>
+
+        <!-- 更多页面视图... -->
       </div>
     </div>
   </div>
+
+  <script>
+    // 快速跳转栏 HTML（所有页面共用，showPage 渲染到 header 右侧）
+    var quickNav = '<div class="quick-nav">' +
+      '<span class="qn-item" data-page="index" onclick="showPage(\'index\')">概览</span>' +
+      '<span class="qn-item" data-page="list" onclick="showPage(\'list\')">F-01 列表页</span>' +
+      '<span class="qn-item" data-page="form" onclick="showPage(\'form\')">F-02 表单页</span>' +
+      '</div>';
+
+    // 每个页面的面包屑（header 左侧）
+    var breadcrumbs = {
+      index: '<div style="font-weight:500;">{模块名} — 原型导航</div>',
+      list:  '<div class="breadcrumb">列表页</div>',
+      form:  '<div class="breadcrumb">表单页</div>'
+    };
+
+    function showPage(pageId) {
+      // 切换页面视图
+      document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+      var target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+      // 更新侧边栏高亮
+      document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
+      var nav = document.querySelector('.sidebar-menu a[onclick*="' + pageId + '"]');
+      if (nav) nav.classList.add('active');
+      // 更新 header：左侧面包屑 + 右侧快速跳转栏
+      document.getElementById('pageHeader').innerHTML = (breadcrumbs[pageId] || '') + quickNav;
+      // 高亮当前页的快速跳转按钮
+      document.querySelectorAll('.quick-nav .qn-item').forEach(el => {
+        el.classList.toggle('qn-active', el.getAttribute('data-page') === pageId);
+      });
+    }
+    showPage('index');
+  </script>
 </body>
 </html>
 ```
 
 **严格要求**：
-- HTML 结构必须是 `.layout > .sidebar + .main > .header + .content`，不得嵌套额外的容器层
-- 不得在 `<style>` 标签中覆盖 `.layout`、`.sidebar`、`.main`、`.header`、`.content` 的布局属性
-- 侧边栏导航必须包含所有页面的 `<a>` 链接，当前页用 `.active` 类标记
+- HTML 结构必须是 `.layout > .sidebar + .main`，`.main` 中包含多个 `.page-view`
+- 不得在 `<style>` 中覆盖 `.layout`、`.sidebar`、`.main` 的核心布局属性
+- 侧边栏导航使用 `onclick="showPage('xxx')"` 而非 `href` 链接
+- 默认显示的页面视图添加 `.active` 类
+- 每个 `.page-view` 内部必须包含 `.header` + `.content`
 
-### 页面类型模板
+## 页面类型模板
 
 **列表页 (table)**：
 - 页面标题 + 面包屑
@@ -188,5 +262,5 @@ textarea { height: auto; min-height: 64px; }
 - 如果字段较多，分组展示
 
 **弹窗 (modal)**：
-- 不单独生成文件，嵌入在触发它的页面中
+- 嵌入在触发它的页面视图中
 - 点击按钮弹出，点击关闭/遮罩收起
