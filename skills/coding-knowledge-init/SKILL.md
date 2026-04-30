@@ -49,19 +49,16 @@ coding-knowledge/
 │   └── security.md                   # 安全合规规范
 ├── business/                         # 第2层：业务层
 │   ├── INDEX.md
-│   ├── overall-architecture.md       # 整体业务架构与服务拓扑
+│   ├── overall-architecture.md       # 整体业务架构��服务拓扑（含上游系统、核心调用关系明细）
 │   ├── glossary.md                   # 业务术语表（术语定义 + 跨系统别名映射）
-│   ├── domains/                      # 细分业务架构
-│   │   ├── INDEX.md
-│   │   └── {domain-name}/
-│   │       ├── overview.md           # 领域概述、核心流程
-│   │       ├── domain-model.md       # 领域模型与数据关系
-│   │       └── cross-service.md      # 跨仓库调用关系
-│   └── prd-reference/                # PRD 参考资料（产品语言，不含代码细节）
-│       ├── existing-features.md      # 现有功能清单（按业务分类）
-│       ├── business-flows.md         # 核心业务流程（含异常处理）
-│       ├── user-roles.md             # 角色定义与权限矩阵
-│       └── design-patterns.md        # 运营后台菜单结构 + 通用交互模式
+│   ├── system-overview.md            # 功能清单 + 运营后台交互模式 + 角色与权限
+│   ├── business-flows.md             # 核心业务流程（含异常处理）
+│   ├── data-model.md                 # 数据模型与实体关系
+│   ├── faq.md                        # 常见问题
+│   └── domains/                      # 细分业务架构
+│       ├── INDEX.md
+│       └── {domain-name}/
+│           └── overview.md           # 领域概述、核心流程
 ├── repos/                            # 第3层：代码仓库层
 │   ├── INDEX.md                      # 仓库层索引（含场景→模块路由表）
 │   └── {repo-name}/
@@ -254,7 +251,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 **先 Read `references/agent-prompt-template.md` 获取完整的子 Agent prompt 模板**，严格使用该模板构造 prompt。模板包含仓库列表格式、生成顺序、质量要求、输出格式等完整规范。
 
-**主 Agent 解析子 Agent 输出**：提取 `cross_service_targets` 和 `mq_topics` 用于 Phase 3 生成 cross-service.md，更新 `.progress.yaml`。
+**主 Agent 解析子 Agent 输出**：提取 `cross_service_targets` 和 `mq_topics` 用于 Phase 3 生成 overall-architecture.md 的跨服务调用明细，更新 `.progress.yaml`。
 
 ---
 
@@ -283,10 +280,10 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
     → ④ call-chains.md → ⑤ codebase-index.md → ⑥ architecture.md
 
 3.2 business/ 层（依赖 repos/ 的跨服务信息）
-    ① glossary.md → ② overall-architecture.md
-    → ③ domains/{domain}/overview.md → ④ domain-model.md → ⑤ cross-service.md
-    → ⑥ prd-reference/existing-features.md → ⑦ business-flows.md
-    → ⑧ user-roles.md → ⑨ design-patterns.md
+    ① glossary.md → ② overall-architecture.md（含上游系统角色 + 核心调用关系明细）
+    → ③ domains/{domain}/overview.md
+    → ④ system-overview.md（功能清单 + 交互模式 + 角色权限）
+    → ⑤ business-flows.md → ⑥ data-model.md → ⑦ faq.md
 
 3.3 infra/ 层（依赖 Phase 2 用户补充 + repos/ 技术栈信息）
     生成顺序不敏感，可并行
@@ -303,7 +300,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 **第一级：文件存在性检查**
 - 每个 repo 目录：.scan-snapshot.md, architecture.md（含"职责边界"章节）, codebase-index.md, symbols.md（无占位描述）, database-schema.md（有数据库时）, call-chains.md
-- business/：glossary.md, overall-architecture.md, 每个 domain 的 overview.md, prd-reference/ 下的 existing-features.md, business-flows.md, user-roles.md, design-patterns.md
+- business/：glossary.md, overall-architecture.md, 每个 domain 的 overview.md, system-overview.md, business-flows.md, data-model.md, faq.md
 - infra/：tech-stack.md, middleware.md（有中间件时）
 - repos/INDEX.md：包含"场景路由表"，多仓库时包含"同名/易混淆模块区分"
 - 所有 INDEX.md ≤ 200 行
@@ -315,7 +312,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 **第三级：交叉一致性检查**
 - 术语一致性：glossary.md 覆盖核心 Entity class_name
-- 跨服务一致性：cross-service.md 与各仓库 .scan-snapshot.md 的跨服务调用一致
+- 跨服务一致性：overall-architecture.md 的"核心调用关系明细"与各仓库 .scan-snapshot.md 的跨服务调用一致
 - INDEX.md 导航完整性：路径指向实际存在的文件
 
 **第四级：覆盖率与完整性量化评估**
@@ -357,14 +354,14 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 **场景 2 — 跨服务理解验证**：
 ```
 假设你要修改一个涉及跨服务调用的功能。
-1. 从 business/domains/{domain}/cross-service.md 了解调用关系
+1. 从 business/overall-architecture.md 的"核心调用关系明细"了解调用关系
 2. 从各仓库的 call-chains.md 了解完整链路
 3. 验证：是否能清楚知道改动的影响范围（上游谁调你，你调用了谁）？
 ```
 
 **执行方式**：
 - 实际 Read 对应的知识库文件，走一遍定位流程
-- 如果在任何步骤卡住（INDEX.md 没有覆盖这个场景、symbols.md 缺少关键方法、cross-service.md 遗漏调用关系），立即修正
+- 如果在任何步骤卡住（INDEX.md 没有覆盖这个场景、symbols.md 缺少关键方法、overall-architecture.md 遗漏调用关系），立即修正
 - 验证通过后在 knowledge-gaps.md 末尾追加验证记录
 
 **验证记录格式**：
@@ -400,7 +397,7 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 典型路径：
 - **明确的修改任务** → INDEX.md 意图路由表 → 目标仓库的 `symbols.md` → `call-chains.md`
-- **写 PRD** → `business/prd-reference/existing-features.md` + `business-flows.md`
+- **写 PRD** → `business/system-overview.md` + `business/business-flows.md` + `business/glossary.md`
 - **探索性任务**（可行性分析、影响评估、问题排查）→ INDEX.md "需要广泛理解时" 章节，按场景加载更多文件
 - **意图不在路由表里** → INDEX.md "路由表匹配不上时" 章节，通过关键词搜索或业务域缩小范围
 
@@ -446,7 +443,7 @@ git diff --name-only {上次生成的 commit hash} HEAD
 | 某仓库内 Controller/Service 变更 | 该仓库的 symbols.md, call-chains.md | 重新运行 scan-repo.py → 重新合成受影响文件 |
 | 新增/删除 Entity | 该仓库的 database-schema.md + business/glossary.md | 重新扫描 + 更新术语表 |
 | 新增仓库 | 完整扫描新仓库 + 更新所有 INDEX.md | 全量处理新仓库 + 增量更新索引 |
-| 跨服务调用变更 | 相关仓库的 call-chains.md + cross-service.md | 重新提取跨服务关系 |
+| 跨服务调用变更 | 相关仓库的 call-chains.md + overall-architecture.md | 重新提取跨服务关系 |
 | 配置文件变更 | infra/ 层相关文件 | 重新合成受影响的 infra 文件 |
 
 **增量更新流程**：

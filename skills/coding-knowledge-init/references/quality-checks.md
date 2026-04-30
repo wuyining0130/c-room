@@ -28,14 +28,14 @@
 |----------|---------|--------|-----------|
 | 跨服务调用覆盖 | call-chains.md 中记录的跨服务调用数 / scan-result.json 中 cross_service_calls 总数 | ≥ 90% | tech-design 调用链追踪遗漏中间层服务 |
 | MQ topic 覆盖 | call-chains.md 中记录的 MQ topic 数 / scan-result.json 中 mq.topics 总数 | 100% | 异步链路遗漏导致改动范围不完整 |
-| 调用链双向一致 | A 仓库记录"调用 B"，B 仓库应记录"被 A 调用" | 100% | cross-service.md 调用关系矛盾 |
+| 调用链双向一致 | A 仓库记录"调用 B"，B 仓库应记录"被 A 调用" | 100% | overall-architecture.md 调用关系矛盾 |
 | 入口链路覆盖 | 有完整调用链的 Controller 方法数 / 核心 Controller 方法总数 | ≥ 60% | code-review 无法验证跨服务调用模式一致性 |
 
 检查方式：
 1. 从各仓库 scan-result.json 的 `cross_service_calls` 数组提取所有跨服务调用目标
 2. 与 call-chains.md 中记录的调用关系逐一对比
 3. 从 scan-result.json 的 `mq` 部分提取所有 producer/consumer topic，与 call-chains.md 对比
-4. 双向检查：如果仓库 A 的 call-chains.md 记录了对仓库 B 的调用，检查仓库 B 的 call-chains.md 或 cross-service.md 中是否有对应的被调用记录
+4. 双向检查：如果仓库 A 的 call-chains.md 记录了对仓库 B 的调用，检查仓库 B 的 call-chains.md 中是否有对应的被调用记录
 
 ## 质量评分卡
 

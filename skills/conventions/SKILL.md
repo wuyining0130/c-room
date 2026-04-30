@@ -53,7 +53,7 @@ flowchart TD
 **coding-knowledge 是地基**：
 
 `coding-knowledge/` 贯穿整个体系，不是某个阶段的专属工具：
-- `prd-draft` 读取 `business/prd-reference/` 理解现有系统，生成更精准的澄清问题
+- `prd-draft` 读取 `business/system-overview.md` + `business-flows.md` + `glossary.md` 理解现有系统，生成更精准的澄清问题
 - `tech-design` 以它为核心输入做改动范围定位和接口设计
 - `code-gen` 深度利用它学习项目编码模式，生成风格一致的代码
 - `code-review` 以它为审查基准，用项目标准（而非通用最佳实践）审查代码
@@ -107,18 +107,15 @@ coding-knowledge/
 │   └── security.md                   # 安全合规规范
 ├── business/                         # 第2层：业务层
 │   ├── INDEX.md
-│   ├── overall-architecture.md       # 整体业务架构与服务拓扑
+│   ├── overall-architecture.md       # 整体业务架构与服务拓扑（含上游系统、核心调用关系明细）
 │   ├── glossary.md                   # 业务术语表
-│   ├── prd-reference/                # PRD 参考知识（需求阶段的业务上下文）
-│   │   ├── existing-features.md
-│   │   ├── business-flows.md
-│   │   ├── user-roles.md
-│   │   └── design-patterns.md
+│   ├── system-overview.md            # 功能清单 + 运营后台交互模式 + 角色与权限
+│   ├── business-flows.md             # 核心业务流程
+│   ├���─ data-model.md                 # 核心数据关系模型
+│   ├── faq.md                        # 业务常见问题
 │   └── domains/                      # 细分业务架构
 │       └── {domain-name}/
-│           ├── overview.md           # 领域概述、核心流程
-│           ├── domain-model.md       # 领域模型与数据关系
-│           └── cross-service.md      # 跨仓库调用关系
+│           └── overview.md           # 领域概述、核心流程
 ├── repos/                            # 第3层：代码仓库层
 │   ├── INDEX.md                      # 仓库层索引（含场景→模块路由表）
 │   └── {repo-name}/
@@ -133,7 +130,7 @@ coding-knowledge/
 | 层 | 核心文件 | 下游 skill 如何使用 |
 |----|---------|---------------------|
 | infra | `code-quality.md` | code-gen/code-review：全局编码规范基准 |
-| business | `glossary.md`, `cross-service.md` | tech-design：跨服务调用关系；prd-draft：业务语义参考 |
+| business | `glossary.md`, `overall-architecture.md` | tech-design：跨服务调用关系（overall-architecture 核心调用关系明细）；prd-draft：业务语义参考 |
 | repos | `symbols.md` | tech-design：精确定位代码位置；code-gen：风格学习入口；code-review：审查参考 |
 | repos | `architecture.md` | tech-design：判断功能归属和职责边界；code-gen：确定新文件包路径 |
 | repos | `database-schema.md` | tech-design：参考建表风格；code-gen：复刻字段命名规范 |
@@ -143,9 +140,9 @@ coding-knowledge/
 
 ## 3.5 PRD 参考知识路径
 
-需求阶段的 skill（prd-draft、prd-review、proto-gen）加载 PRD 参考知识时，统一从 `coding-knowledge/business/prd-reference/` 读取。
+需求阶段的 skill（prd-draft、prd-review、proto-gen）加载 PRD 参考知识时，统一从 `coding-knowledge/business/` 读取。
 
-该目录包含：`existing-features.md`、`business-flows.md`、`user-roles.md`、`design-patterns.md`。
+核心文件：`system-overview.md`（功能清单+交互模式+角色权限）、`business-flows.md`、`glossary.md`、`data-model.md`。
 
 ---
 
@@ -231,7 +228,7 @@ coding-knowledge/
   → architecture.md、symbols.md、database-schema.md、call-chains.md
 
 第三层：business/domains/{domain}/（按需读取）
-  → cross-service.md、domain-model.md
+  → overview.md（业务流程和职责分工）
 ```
 
 ### 各 skill 的侧重点

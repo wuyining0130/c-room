@@ -189,7 +189,7 @@ requirements/{模块名}/prototype/
 
 - **前置**：`prd-draft` 或 `prd-review` 产出的 PRD 终稿
 - **反向**：原型修改模式输出的交互变更摘要，可作为 `prd-draft` 修改模式的输入
-- **辅助**：`coding-knowledge/business/prd-reference/design-patterns.md` 提供现有交互模式参考
+- **辅助**：`coding-knowledge/business/system-overview.md` 的"运营后台交互模式"章节提供现有交互模式参考
 
 ## Common Pitfalls
 

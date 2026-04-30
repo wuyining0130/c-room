@@ -20,7 +20,7 @@
 | 触发条件 | 生成的问题 | 目标文件 |
 |---------|-----------|---------|
 | 每个 domain 下有多个仓库 | "在 {domain} 领域中，{仓库A} 和 {仓库B} 的职责边界是什么？什么场景走 A 什么场景走 B？" | business/domains/{domain}/overview.md |
-| cross_service_calls 中发现调用关系 | "{仓库A} 调用了 {仓库B} 的 {接口}，这个调用的完整业务场景是什么？" | business/domains/{domain}/cross-service.md |
+| cross_service_calls 中发现调用关系 | "{仓库A} 调用了 {仓库B} 的 {接口}，这个调用的完整业务场景是什么？" | business/overall-architecture.md |
 | 多个仓库的 entities 中有相似命名 | "{仓库A} 和 {仓库B} 都有 {类似Entity名}，它们是同一个概念吗？还是不同的业务含义？" | business/glossary.md |
 | 检测到枚举（enums 非空） | "以下枚举值的业务含义是什么？{列出代码中值名不够自解释的枚举}" | business/glossary.md |
 | 每个 domain | "{domain} 的核心业务流程是什么？（如：从用户发起到最终完成的完整链路）" | business/domains/{domain}/overview.md |

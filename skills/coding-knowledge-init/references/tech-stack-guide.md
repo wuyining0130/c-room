@@ -15,7 +15,7 @@ scan-result.json 中的关键字段及其用途：
 | `services[].methods[]` | 核心业务方法 | symbols.md, .scan-snapshot.md |
 | `repositories[]` | 数据访问层 | symbols.md |
 | `entities[]` | 数据模型（class_name + table_name + fields） | database-schema.md, .scan-snapshot.md |
-| `cross_service_calls[]` | 跨服务调用关系（target_app_id + type + methods） | call-chains.md, cross-service.md |
+| `cross_service_calls[]` | 跨服务调用关系（target_app_id + type + methods） | call-chains.md, overall-architecture.md |
 | `mq[]` | 消息队列使用（topic + direction） | call-chains.md |
 | `scheduled_tasks[]` | 定时任务 | call-chains.md |
 | `sql_files[]` | 数据库 DDL | database-schema.md |
