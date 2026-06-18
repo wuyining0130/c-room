@@ -222,6 +222,9 @@ def md_to_html(md_content: str) -> str:
     # 去掉 YAML frontmatter
     content = re.sub(r'^---\n.*?\n---\n', '', md_content, flags=re.DOTALL)
 
+    # 去掉文档开头的第一个 H1 标题（TAPD 需求单本身有标题，无需重复）
+    content = re.sub(r'^\s*#\s+[^\n]+\n+', '', content)
+
     # 预渲染 Mermaid 代码块（在 markdown 转换前处理）
     mermaid_count = 0
 

@@ -126,7 +126,7 @@ PRD 写好了，但开发和业务方对"页面长什么样"的理解往往不�
 
 ```
 requirements/{模块名}/prototype/
-└── prototype.html      ← 单文件原型（所有页面 + CSS + JS）
+└── {模块名}.html      ← 单文件原型（所有页面 + CSS + JS），文件名与需求模块名一致
 ```
 
 ### Step 4: 输出总结
@@ -134,7 +134,7 @@ requirements/{模块名}/prototype/
 生成完成后告知用户：
 1. 原型文件位置
 2. 共包含多少个页面视图
-3. 如何查看：`open requirements/{模块名}/prototype/prototype.html`
+3. 如何查看：`open requirements/{模块名}/prototype/{模块名}.html`
 4. 如何微调：
    - 调整全局风格：修改文件顶部 `<style>` 中的 CSS 变量（`:root { ... }`）
    - 调整单个页面：找到对应的 `<div class="page-view" id="page-xxx">` 修改其内容
@@ -147,11 +147,11 @@ requirements/{模块名}/prototype/
 ### 触发条件
 
 - 用户要求修改已有原型的某个页面（如"把列表页加一个时间筛选"、"详情页多一个审核记录 Tab"）
-- `requirements/{模块名}/prototype/prototype.html` 已存在
+- `requirements/{模块名}/prototype/{模块名}.html` 已存在
 
 ### 执行修改
 
-直接修改 `prototype.html` 中对应的 `<div class="page-view">` 区块。如需新增页面视图，追加新的 `page-view` div 并在侧边栏导航中添加对应菜单项。
+直接修改 `{模块名}.html` 中对应的 `<div class="page-view">` 区块。如需新增页面视图，追加新的 `page-view` div 并在侧边栏导航中添加对应菜单项。
 
 ### 输出交互变更摘要
 
