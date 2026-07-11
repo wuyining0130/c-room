@@ -1,7 +1,14 @@
 ```markdown
 ---
 title: "{模块名} — 技术方案"
+version: "tech-v1"
 prd_version: "{PRD 版本号}"
+prd_path: "{PRD 文件路径}"
+prd_review_path: "{review/review-summary.md 路径；mini 模式为 null}"
+prototype_path: "{prototype/{模块名}.html 路径；纯后端为 null}"
+prototype_prd_version: "{原型记录的 PRD 版本；不适用为 null}"
+knowledge_baseline:
+  {repo}: "{last_scanned_commit 或 source-verified}"
 date: "{生成日期}"
 status: "draft"
 ---
@@ -167,7 +174,7 @@ ALTER TABLE `{table_name}`
 
 ### 6.1 性能
 {列表数据量评估、是否需要索引优化、缓存策略}
-注意：如果存在"建议确认"等模糊措辞，必须要么给出明确技术结论，要么转入第 8 节待确认项。正文中不得保留开放式结论。
+注意：如果存在“建议确认”等模糊措辞，必须要么给出明确技术结论，要么转入第 9 节待确认项。正文中不得保留开放式结论。
 
 ### 6.2 兼容性与回滚方案
 {与现有功能的兼容、灰度方案}

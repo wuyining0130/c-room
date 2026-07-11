@@ -71,21 +71,28 @@ flowchart TD
 
 ---
 
-## 2. PRD 的 7 模块标准结构
+## 2. PRD 文档结构
 
-所有 PRD 文档（prd-draft 产出、prd-review 检查）遵循以下 7 模块结构：
+先读取 YAML frontmatter 的 `mode`，再选择结构，禁止混用：
 
-| 编号 | 模块 | 内容 |
-|------|------|------|
-| 1 | 需求背景 | 需求来源、上下文、触发原因、需求范围 |
-| 2 | 需求价值 | 业务目标（量化）、用户收益、优先级 |
-| 3 | 功能清单 | 功能列表，含优先级、输入/输出/约束 |
-| 4 | 业务流程图 | 核心操作流程（Mermaid 语法），含角色标注和异常分支 |
-| 5 | 数据模型 | 实体定义、字段（类型/约束）、实体关系、枚举值 |
-| 6 | 需求详情 | 每个功能的交互说明、验收标准、边界条件、错误处理 |
-| 7 | 权限管理 | 角色权限矩阵、数据权限、与现有权限体系的关系 |
+- `mode: standard`（或旧文档未声明 mode）：按下列标准结构检查。
+- `mode: mini`：仅保留“一、需求背景”和“二、需求详情”，功能点使用 `F-XX`；不得为了满足标准结构补功能清单、流程、权限、待确认项或默认假设。只有需求范围小、无跨系统流程、无权限变化、无复杂状态流转且无待确认阻塞时才能使用 mini；任一条件不满足即升级为 standard。
 
-**PRD 产品导向原则**：PRD 是面向业务方的文档，全篇使用产品语言。禁止出现类名、方法名、表名、字段名等代码实现细节——这些属于 tech-design 的范畴。
+standard PRD 遵循以下 7 模块结构：
+
+| 编号 | 模块 | 内容 | 是否必需 |
+|------|------|------|----------|
+| 一 | 需求背景 | 1.1 背景与目标；1.2 本期范围与排除边界 | 是 |
+| 二 | 功能清单 | F-XX 产品能力索引、场景简介、优先级 | 是 |
+| 三 | 业务流程图 | 核心端到端流程、角色/系统边界、异常分支 | 有流程时 |
+| 四 | 需求详情 | 每个 F-XX 的功能描述、按需交互/规则/错误/数据定义、验收标准 | 是 |
+| 五 | 权限管理 | 角色权限矩阵、数据权限、与现有权限体系的关系 | 涉及权限时 |
+| 六 | 待确认项 | 未确认问题、影响范围、建议方案 | 有待确认项时 |
+| 七 | 默认假设 | 未明确讨论但采用的假设及依据 | 有默认假设时 |
+
+数据模型不设独立一级章。新实体或字段只在对应 F-XX 的“数据定义”中出现一次；不涉及新数据实体时省略。交互说明、业务规则与边界、错误处理也按需保留，不得为了模板完整写“无”或重复其他小节。
+
+**PRD 产品导向原则**：PRD 面向业务方，全篇使用产品语言。禁止出现类名、方法名、表名、代码字段名等实现细节。内部去重编号不得暴露到正文。
 
 ---
 
@@ -96,6 +103,7 @@ flowchart TD
 ```
 coding-knowledge/
 ├── config.yaml                       # 项目配置：业务名称、子模块、仓库映射
+├── scan-baseline.yaml                # 各仓库最近成功扫描的 commit、时间和脏工作区状态
 ├── INDEX.md                          # 顶层索引：三层知识概览和导航
 ├── infra/                            # 第1层：基础技术层
 │   ├── INDEX.md
@@ -111,7 +119,7 @@ coding-knowledge/
 │   ├── glossary.md                   # 业务术语表
 │   ├── system-overview.md            # 功能清单 + 运营后台交互模式 + 角色与权限
 │   ├── business-flows.md             # 核心业务流程
-│   ├���─ data-model.md                 # 核心数据关系模型
+│   ├── data-model.md                 # 核心数据关系模型
 │   ├── faq.md                        # 业务常见问题
 │   └── domains/                      # 细分业务架构
 │       └── {domain-name}/
@@ -158,23 +166,15 @@ coding-knowledge/
         ├── prd-draft.md              # prd-draft 产出
         ├── prd-context.md            # 需求决策基线（prd-draft 自动维护）
         ├── review/                   # prd-review 产出
-        │   ├── review-summary.md     # 总览报告
-        │   ├── 需求背景.md
-        │   ├── 需求价值.md
-        │   ├── 功能清单.md
-        │   ├── 业务流程图.md
-        │   ├── 数据模型.md
-        │   ├── 需求详情.md
-        │   └── 权限管理.md
+        │   ├── review-summary.md     # 唯一必需报告，完整汇总所有发现
+        │   └── {检查维度}.md          # 可选；内容较多时拆分
         ├── prototype/               # proto-gen 产出
-        │   ├── index.html
-        │   ├── styles.css
-        │   ├── list.html
-        │   ├── detail.html
-        │   ├── form.html
-        │   └── ...
+        │   └── {模块名}.html          # 单文件自包含原型
         ├── tech-design.md            # tech-design 产出
         ├── code-gen-report.md        # code-gen 产出
+        ├── tapd-backup/              # tapd-sync 本地运行时备份（建议加入 .gitignore）
+        │   ├── {story_id}-{timestamp}.json
+        │   └── {story_id}-{timestamp}-preview.html
         └── code-review/              # code-review 产出
             ├── review-summary.md     # 总览报告
             └── {仓库名}.md           # 按仓库的详细报告
@@ -195,8 +195,8 @@ coding-knowledge/
 | Skill | 输入 | 输出 |
 |-------|------|------|
 | prd-draft | 用户需求描述 + `coding-knowledge/`(如有) | `requirements/{模块名}/prd-draft.md` + `prd-context.md` |
-| prd-review | `requirements/{模块名}/prd-draft.md` + `coding-knowledge/`(如有) | `requirements/{模块名}/review/` |
-| proto-gen | `requirements/{模块名}/prd-draft.md` + 前端代码 | `requirements/{模块名}/prototype/` |
+| prd-review | `requirements/{模块名}/prd-draft.md` + `prd-context.md` + `coding-knowledge/`(如有) | `requirements/{模块名}/review/review-summary.md` |
+| proto-gen | `requirements/{模块名}/prd-draft.md` + 前端代码 | `requirements/{模块名}/prototype/{模块名}.html` |
 
 ### 研发阶段
 
@@ -243,15 +243,33 @@ coding-knowledge/
 
 ### 核心原则
 
-- **标准从项目中来**：不用通用最佳实践，用这个项目的实际编码模式
+- **标准从项目中来**：不用通用最佳实践替代项目的实际编码模式
 - **风格对照而非风格发明**：如果整个项目都用 `@Autowired`，新代码用 `@Autowired` 就不是问题
-- **冲突时以 coding-knowledge 为准**：它基于实际代码分析，比其他来源更可靠
+- **知识库不是需求权威源**：coding-knowledge 描述现状，不能覆盖用户确认的新需求
+
+## 7.5 权威来源与冲突处理
+
+不同信息使用不同权威源，禁止用一个笼统优先级处理所有冲突：
+
+| 信息类型 | 权威顺序 |
+|----------|----------|
+| 需求意图与业务决策 | 用户当前明确指示 > prd-context 最新决策 > PRD 正文 |
+| 页面与交互 | PRD > 经用户确认且已同步的原型；原型未同步差异只作为待处理项 |
+| 系统现状、代码结构、接口签名 | 当前源码 > 最新扫描的 coding-knowledge > 历史技术文档 |
+| 实施方案 | 已确认且与 PRD/源码一致的 tech-design；它不能覆盖上游需求 |
+
+发现冲突时先判断信息类型，再处理：
+
+1. 可从源码或文件版本客观验证的，先验证并使用最新事实，同时更新过期知识库或方案。
+2. 会改变业务行为、页面范围、接口契约或数据口径的，停止下游写入，列出冲突并请用户确认或先修正上游文档。
+3. code-gen 不得明知 tech-design 与 PRD、原型或源码矛盾仍继续实现。
+4. 所有下游产物记录所依据的上游文件路径和版本，便于检测过期。
 
 ---
 
 ## 8. PRD 版本管理
 
-prd-draft 在 YAML frontmatter 中标注 `version: "draft-v1"`。修改 PRD 后建议手动更新版本号（draft-v2、draft-v3）。prd-review 在报告中会标注检查的是哪个版本。
+prd-draft 在 YAML frontmatter 中标注 `version: "draft-v1"`。每次修改必须递增版本并追加变更记录；prd-review 和 tech-design 必须记录所读取的 PRD 版本。
 
 典型迭代流程：
 ```

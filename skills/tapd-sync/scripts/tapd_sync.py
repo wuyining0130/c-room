@@ -24,6 +24,14 @@ import sys
 import urllib.request
 import urllib.parse
 import urllib.error
+import html as html_module
+from html.parser import HTMLParser
+from datetime import datetime
+from pathlib import Path
+from uuid import uuid4
+
+ALLOW_REMOTE_MERMAID = False
+MERMAID_JS_PATH = None
 
 
 def parse_tapd_url(url: str) -> tuple:
@@ -112,29 +120,36 @@ def _mermaid_via_playwright(mermaid_code: str) :
     """
     import base64 as b64mod
 
+    if not MERMAID_JS_PATH:
+        return None
+    mermaid_js = Path(MERMAID_JS_PATH)
+    if not mermaid_js.is_file():
+        print(f"  本地 Mermaid.js 不存在: {mermaid_js}")
+        return None
     browser = _get_playwright_browser()
     if not browser:
         return None
 
+    escaped_mermaid = html_module.escape(mermaid_code)
     html = f'''<!DOCTYPE html>
 <html><head>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <style>
 body {{ margin: 0; padding: 20px; background: white;
        font-family: -apple-system, "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif; }}
 </style>
 </head><body>
 <pre class="mermaid">
-{mermaid_code}
+{escaped_mermaid}
 </pre>
-<script>
-mermaid.initialize({{ startOnLoad: true, theme: 'default', flowchart: {{ useMaxWidth: false }} }});
-</script>
 </body></html>'''
 
     try:
         page = browser.new_page(viewport={"width": 1400, "height": 900})
+        page.route(re.compile(r"^https?://", re.IGNORECASE), lambda route: route.abort())
         page.set_content(html)
+        page.add_script_tag(path=str(mermaid_js))
+        page.evaluate("mermaid.initialize({startOnLoad: true, theme: 'default', flowchart: {useMaxWidth: false}})")
+        page.evaluate("mermaid.run({querySelector: '.mermaid'})")
         page.wait_for_selector('.mermaid svg', timeout=15000)
         svg = page.query_selector('.mermaid svg')
         img_bytes = svg.screenshot(type="png")
@@ -188,20 +203,19 @@ def _mermaid_via_ink(mermaid_code: str) :
 def mermaid_to_img(mermaid_code: str) -> str:
     """将 Mermaid 代码渲染为 PNG 图片标签。
 
-    渲染策略（三级回退）：
-    1. Playwright 本地渲染（最佳质量：真实浏览器引擎，中文字体清晰，布局精准）
-    2. mermaid.ink 远程渲染（回退：质量一般，中文字体和布局不如本地）
-    3. 代码块（兜底：渲染完全失败时保留原始代码）
+    渲染策略：本地 Mermaid.js + Playwright；失败时默认保留代码块。
+    只有用户显式许可时才把源码发送给 mermaid.ink。
     """
     # 优先：Playwright 本地渲染
     result = _mermaid_via_playwright(mermaid_code)
     if result:
         return result
 
-    # 回退：mermaid.ink
-    result = _mermaid_via_ink(mermaid_code)
-    if result:
-        return result
+    # 远程渲染会向第三方发送图表源码，仅在用户显式允许时使用。
+    if ALLOW_REMOTE_MERMAID:
+        result = _mermaid_via_ink(mermaid_code)
+        if result:
+            return result
 
     # 兜底：代码块
     print(f"  警告: 所有渲染方式均失败，保留为代码块")
@@ -209,15 +223,76 @@ def mermaid_to_img(mermaid_code: str) -> str:
     return f'<pre><code class="language-mermaid">{escaped}</code></pre>'
 
 
+def secure_write(path: Path, content: bytes) -> None:
+    """Create a new private file without a world-readable permission window."""
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(path, flags, 0o600)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+
+
+class _VisibleTextParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.images = []
+        self.hidden_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() in {"script", "style"}:
+            self.hidden_depth += 1
+        if tag.lower() == "img":
+            image = dict(attrs)
+            alt = image.get("alt") or ""
+            self.images.append({"alt": re.sub(r"\s+", " ", alt).strip(), "src": (image.get("src") or "").strip()})
+            if alt:
+                self.parts.append(alt)
+
+    def handle_endtag(self, tag):
+        if tag.lower() in {"script", "style"} and self.hidden_depth:
+            self.hidden_depth -= 1
+
+    def handle_data(self, data):
+        if not self.hidden_depth:
+            self.parts.append(data)
+
+
+def normalized_visible_text(html: str) -> str:
+    """Normalize HTML to the user-visible text TAPD must preserve."""
+    parser = _VisibleTextParser()
+    parser.feed(html)
+    parser.close()
+    return re.sub(r"\s+", " ", html_module.unescape(" ".join(parser.parts))).strip()
+
+
+def normalized_content_contract(html: str) -> dict:
+    """Return text plus image semantics that must survive TAPD sanitization."""
+    parser = _VisibleTextParser()
+    parser.feed(html)
+    parser.close()
+    text = re.sub(r"\s+", " ", html_module.unescape(" ".join(parser.parts))).strip()
+    return {"text": text, "images": parser.images}
+
+
 def md_to_html(md_content: str) -> str:
     """将 Markdown 转换为 HTML，去掉 YAML frontmatter，预渲染 Mermaid 图表。"""
     try:
         import markdown
     except ImportError:
-        print("正在安装 markdown 库...")
-        import subprocess
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'markdown', '-q'])
-        import markdown
+        print("错误: 缺少 Python 依赖 markdown。")
+        print(f"请确认后执行: {sys.executable} -m pip install markdown")
+        raise SystemExit(2)
 
     # 去掉 YAML frontmatter
     content = re.sub(r'^---\n.*?\n---\n', '', md_content, flags=re.DOTALL)
@@ -289,11 +364,17 @@ def tapd_api(method: str, endpoint: str, params: dict = None) -> dict:
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode()
         print(f"TAPD API 错误 ({e.code}): {body}")
+        sys.exit(1)
+    except (urllib.error.URLError, TimeoutError) as e:
+        print(f"TAPD 网络错误: {e}")
+        sys.exit(1)
+    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+        print(f"TAPD 响应解析失败: {e}")
         sys.exit(1)
 
 
@@ -331,7 +412,14 @@ def main():
     parser.add_argument('--preview', action='store_true', help='仅预览当前需求单信息')
     parser.add_argument('--yes', '-y', action='store_true', help='跳过确认直接上传')
     parser.add_argument('--workspace-id', help='手动指定 workspace_id（URL 无法自动解析时使用）')
+    parser.add_argument('--backup-dir', help='原描述和 HTML 预览的保存目录，默认位于 Markdown 同目录的 tapd-backup/')
+    parser.add_argument('--allow-remote-mermaid', action='store_true', help='允许将 Mermaid 源码发送到 mermaid.ink 远程渲染')
+    parser.add_argument('--mermaid-js', help='本地 mermaid.min.js 路径；仅使用本地文件，不从 CDN 加载')
+    parser.add_argument('--accept-concurrency-risk', action='store_true', help='确认接受 TAPD 无条件更新接口在最终检查后仍有极短并发覆盖窗口')
     args = parser.parse_args()
+    global ALLOW_REMOTE_MERMAID, MERMAID_JS_PATH
+    ALLOW_REMOTE_MERMAID = args.allow_remote_mermaid
+    MERMAID_JS_PATH = args.mermaid_js
 
     # 解析 TAPD URL
     workspace_id, story_id = parse_tapd_url(args.url)
@@ -369,8 +457,27 @@ def main():
     with open(file_path, 'r', encoding='utf-8') as f:
         md_content = f.read()
 
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + uuid4().hex[:8]
+    backup_dir = Path(os.path.expanduser(args.backup_dir)) if args.backup_dir else Path(file_path).resolve().parent / 'tapd-backup'
+    backup_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    backup_dir.chmod(0o700)
+    backup_path = backup_dir / f'{story_id}-{timestamp}.json'
+    backup_payload = json.dumps({
+        'workspace_id': workspace_id,
+        'story_id': story_id,
+        'name': story.get('name'),
+        'description': story.get('description') or '',
+        'backed_up_at': datetime.now().isoformat(timespec='seconds'),
+        'source_file': str(Path(file_path).resolve()),
+    }, ensure_ascii=False, indent=2).encode('utf-8')
+    secure_write(backup_path, backup_payload)
+    print(f"原描述备份: {backup_path}")
+
     html_content = md_to_html(md_content)
     print(f"Markdown: {len(md_content)} 字符 → HTML: {len(html_content)} 字符")
+    preview_path = backup_dir / f'{story_id}-{timestamp}-preview.html'
+    secure_write(preview_path, html_content.encode('utf-8'))
+    print(f"HTML 预览: {preview_path}")
 
     # 确认
     if not args.yes:
@@ -380,12 +487,45 @@ def main():
             print("已取消")
             return
 
+    # 检测读取到最终确认之间的修改；TAPD 接口无条件更新，无法消除随后 POST 前的竞态窗口。
+    latest = get_story(workspace_id, story_id)
+    if (latest.get('description') or '') != (story.get('description') or ''):
+        print("错误: 确认期间需求单描述已被其他人更新，已停止上传。请重新预览、备份并确认。")
+        sys.exit(1)
+    if args.yes and not args.accept_concurrency_risk:
+        print("错误: --yes 模式还需显式传入 --accept-concurrency-risk；TAPD API 不支持条件更新。")
+        sys.exit(1)
+    if not args.yes:
+        print("注意: TAPD API 不支持条件更新。最终检查后到上传前仍存在极短并发覆盖窗口。")
+        confirm = input("接受该风险并立即上传? [y/N] ")
+        if confirm.lower() != 'y':
+            print("已取消")
+            return
+
     # 上传
     updated = update_story_description(workspace_id, story_id, html_content)
-    new_len = len(updated.get('description', ''))
+    verified = get_story(workspace_id, story_id)
+    new_len = len(verified.get('description', '') or '')
+    verified_html = verified.get('description', '') or ''
+    expected_contract = normalized_content_contract(html_content)
+    verified_contract = normalized_content_contract(verified_html)
+    expected_images = expected_contract["images"]
+    verified_images = verified_contract["images"]
+    text_matches = verified_contract["text"] == expected_contract["text"]
+    image_count_matches = len(verified_images) == len(expected_images)
+    image_alts_match = [item["alt"] for item in verified_images] == [item["alt"] for item in expected_images]
+    image_sources_valid = all(item["src"] for item in verified_images)
+    content_matches = text_matches and image_count_matches and image_alts_match and image_sources_valid
+    if verified.get('name') != story.get('name') or not content_matches:
+        print("错误: 上传后的需求单核对失败，请使用本地备份检查或恢复")
+        print(f"可见文本长度: 预期 {len(expected_contract['text'])}，远端 {len(verified_contract['text'])}；全文一致: {text_matches}")
+        print(f"图片: 预期 {len(expected_images)}，远端 {len(verified_images)}；顺序/alt一致: {image_alts_match}；src有效: {image_sources_valid}")
+        print(f"备份文件: {backup_path}")
+        sys.exit(1)
     print(f"\n上传成功")
-    print(f"需求单: {updated['name']}")
+    print(f"需求单: {verified['name']}")
     print(f"描述长度: {current_desc_len} → {new_len} 字符")
+    print(f"已核对远端标题、规范化完整可见文本及图片完整性；原描述备份: {backup_path}")
 
 
 if __name__ == '__main__':

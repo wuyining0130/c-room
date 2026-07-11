@@ -1,0 +1,1 @@
+{"skill_name":"prd-review","evals":[{"id":1,"prompt":"评审一个没有独立数据模型章、没有错误处理小节的简单 PRD。","expected_output":"按需检查，不因合理省略而误报。","files":[],"expectations":["从F-XX内检查数据定义","无独立错误时允许省略","检查同义复述和内部编号","输出 review/review-summary.md"]}]}

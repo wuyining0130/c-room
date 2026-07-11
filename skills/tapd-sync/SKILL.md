@@ -5,8 +5,6 @@ description: >-
   当用户提到"上传到 TAPD"、"同步到 TAPD"、"更新 TAPD 需求单"、"把 md 传到 TAPD"、
   "把 PRD 更新到 TAPD"、"同步需求单"时使用此 skill。
   用户粘贴了 tapd.cn 链接并提到上传/同步/更新文档时，也应该触发。
-type: interactive
-theme: pm-artifacts
 ---
 
 ## Purpose
@@ -40,9 +38,12 @@ PRD、技术方案等文档在本地用 Markdown 编写后，需要同步到 TAP
 
 ### Step 2: 确认并执行
 
-1. 先用 `--preview` 查看目标需求单信息，确认是正确的需求单
-2. 告知用户当前描述会被覆盖（显示字符数变化），获得确认
-3. 执行上传
+1. 先做依赖预检；缺少依赖时列出安装命令并获得用户许可，不在上传流程中静默安装
+2. 用 `--preview` 查看目标需求单信息，确认是正确的需求单
+3. 将目标需求单当前标题、描述和获取时间保存到本地备份文件 `requirements/{模块名}/tapd-backup/{story_id}-{timestamp}.json`（无法判断模块时保存到 Markdown 同目录的 `tapd-backup/`）
+4. 生成本地 HTML 预览并报告字符数、Mermaid 渲染方式和降级情况
+5. 告知用户当前描述会被覆盖，获得确认
+6. 执行上传；上传后重新读取需求单，核对标题及规范化后的完整可见文本是否一致
 
 ### 脚本调用
 
@@ -56,7 +57,7 @@ python scripts/tapd_sync.py --url "<TAPD_URL>" --preview
 python scripts/tapd_sync.py --url "<TAPD_URL>" --file "<MD_FILE>"
 
 # 跳过确认直接上传（用户已在对话中确认时使用）
-python scripts/tapd_sync.py --url "<TAPD_URL>" --file "<MD_FILE>" --yes
+python scripts/tapd_sync.py --url "<TAPD_URL>" --file "<MD_FILE>" --yes --accept-concurrency-risk
 ```
 
 如果 URL 中无法自动解析 workspace_id，使用 `--workspace-id` 手动指定。
@@ -80,31 +81,31 @@ python scripts/tapd_sync.py --url "<TAPD_URL>" --file "<MD_FILE>" --yes
 
 TAPD 需求单描述字段不支持原生 Mermaid 渲染（仅 TAPD Markdown Wiki 页面支持），因此脚本会将 Mermaid 代码块预渲染为 PNG 图片。
 
-**渲染策略（三级回退）**：
+**渲染策略**：
 
-1. **Playwright 本地渲染（优先，最佳质量）**：用 Playwright 启动本地 Chromium，加载 Mermaid.js CDN 渲染为 SVG，再截图为 PNG。中文字体清晰（使用系统字体）、布局精准（真实浏览器引擎），质量与 TAPD 编辑器内手动粘贴一致。输出为 base64 data URI，TAPD 会提取到自己的 CDN 托管。
-2. **mermaid.ink 远程渲染（回退）**：用 `mermaid.ink` 服务端渲染。优先生成外部直链（TAPD 直接加载不压缩），不可用时下载为 base64 内嵌。质量不如本地渲染（中文字体差、布局可能拥挤）。
-3. **代码块（兜底）**：渲染完全失败时保留为 `<pre><code>` 格式
+1. **Playwright 本地渲染（优先）**：用户提供本地 `mermaid.min.js` 并传入 `--mermaid-js <path>`；脚本用本地 Chromium 渲染，并拦截页面发起的所有 HTTP(S) 请求，防止图表中的外部资源间接联网。
+2. **代码块（默认兜底）**：本地渲染不可用时保留为 `<pre><code>`，避免将合同、接口或架构图内容发送给第三方。
+3. **mermaid.ink 远程渲染（显式许可）**：只有用户明确同意并传入 `--allow-remote-mermaid` 时使用。
 
-**Playwright 依赖**：需要 `pip3 install playwright && playwright install chromium`。如果未安装 Playwright，自动回退到 mermaid.ink。
+**本地渲染依赖**：需要 Playwright、Chromium 和用户提供的本地 Mermaid.js。未提供任一项时默认保留代码块；远程回退必须获得用户许可。
 
 **为什么不用 SVG**：TAPD 的 HTML 清洗器会剥离 SVG 中的 `<foreignObject>` 元素，而 Mermaid 用 foreignObject 渲染文字，导致图表文字和连线全部丢失。
 
 ### 上传行为
 
 - 上传操作会**覆盖**需求单现有描述，TAPD 有变更历史可回退
-- 脚本默认会提示确认，在对话中用户已明确同意时可用 `--yes` 跳过
+- TAPD 当前接口不支持条件更新。脚本会在上传前再次读取以检测确认窗口内的修改，但最终检查与 POST 之间仍有极短竞态窗口；交互模式需再次确认风险，`--yes` 模式必须同时传入 `--accept-concurrency-risk`
 
 ## Python 依赖
 
-脚本会自动安装缺失的依赖，也可以手动预装：
+脚本不会自动修改 Python 环境。缺少依赖时退出并显示安装命令，经用户确认后再安装：
 
 ```bash
 pip3 install markdown playwright
 playwright install chromium
 ```
 
-Playwright 用于本地高清 Mermaid 渲染（可选，未安装时自动回退到 mermaid.ink 远程渲染）。
+Playwright 用于本地高清 Mermaid 渲染（可选）。未安装或未传入本地 Mermaid.js 时保留代码块，不自动调用远程服务。
 
 ## 与其他 skill 的关系
 
@@ -112,8 +113,10 @@ Playwright 用于本地高清 Mermaid 渲染（可选，未安装时自动回退
 
 ## Common Pitfalls
 
-**忘记确认覆盖**：上传会替换需求单现有描述。脚本默认会提示确认，在对话中用户已明确同意时可用 `--yes` 跳过。
+**忘记确认覆盖**：上传会替换需求单现有描述。脚本默认提示确认并说明并发竞态；仅在用户已明确接受该风险时使用 `--yes --accept-concurrency-risk`。
+
+**未保存原描述**：上传前必须保存本地 JSON 备份；即使 TAPD 有历史记录，也不能把远端历史作为唯一回滚手段。
 
 **URL 解析失败**：部分 TAPD URL 格式中 workspace_id 不在路径里（如 `dialog_preview_id` 格式），需要用 `--workspace-id` 手动指定。
 
-**Mermaid 图片模糊**：如果 Playwright 未安装导致回退到 mermaid.ink，中文字体和布局质量会明显下降。建议安装 Playwright（`pip3 install playwright && playwright install chromium`）获得最佳渲染效果。
+**Mermaid 未渲染**：默认不会联网下载 Mermaid.js。需要图片时，安装 Playwright 和 Chromium，并用 `--mermaid-js` 指向本地 `mermaid.min.js`；只有确认可向第三方发送源码时才使用 `--allow-remote-mermaid`。

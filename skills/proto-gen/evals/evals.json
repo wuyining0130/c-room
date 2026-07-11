@@ -1,0 +1,1 @@
+{"skill_name":"proto-gen","evals":[{"id":1,"prompt":"根据 PRD 生成单文件 B 端原型。","expected_output":"生成后完成浏览器、交互、截图与离线验证。","files":[],"expectations":["输出 prototype/{模块名}.html","检查控制台错误","验证页面切换和关键交互","截图检查1440x900","检查无外部资源"]}]}

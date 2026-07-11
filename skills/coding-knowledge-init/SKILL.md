@@ -38,6 +38,7 @@ description: >-
 ```
 coding-knowledge/
 ├── config.yaml                       # 项目配置：业务名称、子模块、仓库映射
+├── scan-baseline.yaml                # 每个仓库最近成功扫描的 commit 与时间
 ├── INDEX.md                          # 顶层索引：三层知识概览和导航
 ├── infra/                            # 第1层：基础技术层
 │   ├── INDEX.md
@@ -49,7 +50,7 @@ coding-knowledge/
 │   └── security.md                   # 安全合规规范
 ├── business/                         # 第2层：业务层
 │   ├── INDEX.md
-│   ├── overall-architecture.md       # 整体业务架构��服务拓扑（含上游系统、核心调用关系明细）
+│   ├── overall-architecture.md       # 整体业务架构与服务拓扑（含上游系统、核心调用关系明细）
 │   ├── glossary.md                   # 业务术语表（术语定义 + 跨系统别名映射）
 │   ├── system-overview.md            # 功能清单 + 运营后台交互模式 + 角色与权限
 │   ├── business-flows.md             # 核心业务流程（含异常处理）
@@ -428,9 +429,24 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 ### 智能增量更新（基于 git diff）
 
+每次完整或增量扫描成功后，写入 `coding-knowledge/scan-baseline.yaml`：
+
+```yaml
+repos:
+  order_srv:
+    path: repos/order_srv
+    last_scanned_commit: "<完整 commit SHA>"
+    scanned_at: "YYYY-MM-DD HH:MM:SS"
+    dirty_at_scan: false
+    scan_fingerprint: "<scan-result.json SHA-256>"
+    dirty_patch_fingerprint: null
+```
+
+基线只在该仓库文档生成并通过质量校验后更新。扫描失败或校验未通过时保留旧基线。
+
 ```bash
-# 1. 获取自上次生成以来的变更文件
-git diff --name-only {上次生成的 commit hash} HEAD
+# 1. 从 scan-baseline.yaml 读取该仓库 last_scanned_commit
+git diff --name-only {last_scanned_commit} HEAD
 
 # 2. 确定受影响的仓库
 #    变更文件路径 → 所属仓库 → 标记为需要更新
@@ -447,17 +463,24 @@ git diff --name-only {上次生成的 commit hash} HEAD
 | 配置文件变更 | infra/ 层相关文件 | 重新合成受影响的 infra 文件 |
 
 **增量更新流程**：
-1. 读取 `config.yaml` 获取已有配置
-2. 运行 `git diff --name-only` 获取变更文件清单
+1. 读取 `config.yaml` 和 `scan-baseline.yaml` 获取路径及每仓库基准 commit
+2. 验证基准 commit 可达，再运行 `git diff --name-only {baseline} HEAD`；同时读取工作区 staged、unstaged、untracked 变更，避免遗漏尚未提交的代码
 3. 映射变更文件到仓库和文档类型
 4. 仅对受影响的仓库重新运行 `scan-repo.py`
 5. 仅重新合成受影响的文档
 6. 更新所有受影响的 INDEX.md
-7. 在更新的文件元数据中标注更新原因和时间
+7. 质量校验通过后更新该仓库的 `last_scanned_commit`、扫描时间和脏工作区标记
+8. 在更新的文件元数据中标注更新原因和时间
 
-**无法使用 git diff 时**（非 git 仓库或用户未提供基准 commit）：
+**无法使用 git diff 时**（非 git 仓库、基准缺失/不可达、force-push 导致祖先关系失效）：
 - 对所有仓库重新运行 `scan-repo.py`，对比新旧 scan-result.json
 - 只更新有差异的文档
+
+**脏工作区处理**：扫描可以继续，但必须把未提交改动计入差异，并记录工作区 patch/untracked 内容的指纹。下次更新先重新扫描并比较指纹；即使 HEAD 未变化，工作区改动被撤销或改变也必须回写知识库。commit 基线只代表已提交状态，不能用 `dirty_at_scan` 布尔值代替内容基线。
+
+**脚本落地**：使用 `scripts/scan-baseline.py` 的 `changed` 子命令计算需要扫描的仓库，扫描及质量校验通过后再使用 `record` 子命令更新基线。不得只凭人工阅读 YAML 判断。
+
+**事务性更新**：先在正式目录同文件系统的兄弟目录 `.coding-knowledge-staging/{run-id}/` 构建完整候选树（包括最后生成的 `scan-baseline.yaml`），并完成四级质量校验。全部通过后调用 `scripts/promote-staging.py --staging <候选树> --target coding-knowledge` 整树切换；脚本在切换失败时恢复旧目录。不得逐文件覆盖正式目录，也不得在晋升后再单独写基线。失败时报告 staging 路径供排查。
 
 ---
 
