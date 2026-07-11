@@ -4,8 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 const HOME = process.env.HOME || process.env.USERPROFILE;
-const SKILLS_TARGET = path.join(HOME, '.claude', 'skills');
-const skillsSource = path.join(__dirname, '..', 'skills');
+const useCodex = process.argv.includes('--codex');
+const SKILLS_TARGET = useCodex
+  ? path.join(process.env.CODEX_HOME || path.join(HOME, '.codex'), 'skills')
+  : path.join(HOME, '.claude', 'skills');
+const skillsSource = path.join(__dirname, '..', 'skills-release');
 
 // Uninstall mode
 if (process.argv.includes('--uninstall')) {
@@ -30,7 +33,7 @@ if (process.argv.includes('--uninstall')) {
 
 // Install mode
 if (!fs.existsSync(skillsSource)) {
-  console.error('Error: skills/ directory not found.');
+  console.error('Error: skills-release/ directory not found.');
   process.exit(1);
 }
 
@@ -56,7 +59,7 @@ for (const skill of skills) {
 
 console.log('');
 console.log(`Done! Installed ${count} skills to ${SKILLS_TARGET}`);
-console.log('Use /skill-name in Claude Code to invoke them.');
+console.log(`Skills are ready for ${useCodex ? 'Codex' : 'Claude Code'}.`);
 
 function copyDirSync(src, dest) {
   fs.mkdirSync(dest, { recursive: true });

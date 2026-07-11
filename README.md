@@ -2,9 +2,9 @@
 
 [English](README.en.md) | 中文
 
-> 让 Claude Code 一条命令跑通「需求 → PRD → 原型 → 技术方案 → 代码 → 审查」全流程。
+> 让 Claude Code 或 Codex 跑通「需求 → PRD → 原型 → 技术方案 → 代码 → 审查」全流程。
 
-C-ROOM 是一套开箱即用的 Claude Code Skill 集合。安装后，你只需要用自然语言描述需求，AI 就能帮你完成从产品到研发的完整闭环。
+C-ROOM 是一套同时兼容 **Claude Code** 与 **Codex** 的开箱即用 Skill 集合。两者使用相同的 `SKILL.md` 规范和分发内容；安装后，你只需要用自然语言描述需求，AI 就能帮你完成从产品到研发的完整闭环。
 
 ## 解决什么问题
 
@@ -25,15 +25,21 @@ C-ROOM 做的事：**把专家知识一次性结构化沉淀，之后全链路�
 
 - **多仓库微服务项目**（最佳场景）：Java/Spring、Go、PHP、Python、Node.js、Vue/React
 - **单仓库项目**也可以用，只是跨服务相关的能力用不上
-- **技术栈要求**：需要安装 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- **AI 编码工具**：支持 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 Codex
 
 ## 安装
 
+默认安装 `skills-release/` 中的纯分发版本，不包含 `evals/`、单元测试和本地系统文件；`skills/` 保留完整开发版，供维护和回归验证使用。
+
 ```bash
+# 安装到 Claude Code（~/.claude/skills）
 git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/install.sh && rm -rf /tmp/c-room
+
+# 安装到 Codex（~/.codex/skills）
+git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/install.sh --codex && rm -rf /tmp/c-room
 ```
 
-或者在 Claude Code 对话中说：
+或者在 Claude Code / Codex 对话中说：
 
 ```
 帮我安装 https://github.com/wuyining0130/c-room 下的所有 skill
@@ -47,7 +53,7 @@ git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-
 
 ## Quick Start
 
-安装完成后，在你的项目目录下打开 Claude Code，试试：
+安装完成后，在你的项目目录下打开 Claude Code 或 Codex，试试：
 
 **第一步：建立知识库**（只需做一次）
 
@@ -230,7 +236,8 @@ flowchart TD
 
 ```text
 c-room/
-└── skills/
+├── skills/                       # 开发版：包含 evals 和回归测试
+└── skills-release/               # 分发版：仅保留运行所需文件（默认安装来源）
     ├── conventions/              # 共享约定
     ├── coding-knowledge-init/    # 编码知识库初始化
     ├── prd-draft/                # 需求草稿生成
@@ -242,13 +249,21 @@ c-room/
     └── tapd-sync/                # TAPD 同步
 ```
 
+维护者可运行 `bash install.sh --dev`（Claude Code）或 `bash install.sh --codex --dev`（Codex），把包含评测资产的 `skills/` 以软链接方式安装，便于调试；普通用户无需使用该模式。
+
+修改开发版后，运行 `bash scripts/build-release.sh` 重新生成分发版。脚本会清理旧文件，并检查 `evals/`、测试脚本和 `.DS_Store` 没有进入分发目录。
+
 ## 卸载
 
 ```bash
+# 卸载 Claude Code 中的 C-ROOM skills
 git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/uninstall.sh && rm -rf /tmp/c-room
+
+# 卸载 Codex 中的 C-ROOM skills
+git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/uninstall.sh --codex && rm -rf /tmp/c-room
 ```
 
-或者在 Claude Code 中说：
+或者在 Claude Code / Codex 中说：
 
 ```
 帮我删除 c-room 安装的所有 skill

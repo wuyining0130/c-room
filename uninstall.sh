@@ -4,7 +4,14 @@ set -euo pipefail
 # c-room uninstaller
 # Removes skills installed by this project from ~/.claude/skills/
 
-SKILLS_DIR="${HOME}/.claude/skills"
+if [ "${1:-}" = "--codex" ]; then
+    SKILLS_DIR="${CODEX_HOME:-${HOME}/.codex}/skills"
+elif [ -n "${1:-}" ]; then
+    echo "Error: unknown option: $1" >&2
+    exit 1
+else
+    SKILLS_DIR="${HOME}/.claude/skills"
+fi
 
 # Skills managed by this project
 SKILLS=(

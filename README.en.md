@@ -2,9 +2,9 @@
 
 English | [中文](README.md)
 
-> One command in Claude Code to run the full cycle: Requirements → PRD → Prototype → Tech Design → Code → Review.
+> Run the full Requirements → PRD → Prototype → Tech Design → Code → Review cycle in Claude Code or Codex.
 
-C-ROOM is a batteries-included collection of Claude Code Skills. After installation, just describe what you need in natural language — AI handles the complete product-to-engineering loop.
+C-ROOM is a batteries-included Skill collection compatible with both **Claude Code** and **Codex**. Both platforms use the same `SKILL.md` format and distribution. After installation, describe what you need in natural language and the AI handles the complete product-to-engineering loop.
 
 ## The Problem
 
@@ -25,15 +25,21 @@ What C-ROOM does: **Capture expert knowledge once, auto-load it across the entir
 
 - **Multi-repo microservice projects** (ideal scenario): Java/Spring, Go, PHP, Python, Node.js, Vue/React
 - **Monorepo projects** work too — cross-service features just won't apply
-- **Requires**: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
+- **AI coding tools**: supports [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Codex
 
 ## Installation
 
+Normal installation uses the clean `skills-release/` distribution, which excludes evals, unit tests, and local system files. The complete development assets remain under `skills/` for maintenance and regression testing.
+
 ```bash
+# Install for Claude Code (~/.claude/skills)
 git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/install.sh && rm -rf /tmp/c-room
+
+# Install for Codex (~/.codex/skills)
+git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/install.sh --codex && rm -rf /tmp/c-room
 ```
 
-Or say this in Claude Code:
+Or say this in Claude Code or Codex:
 
 ```
 Install all skills from https://github.com/wuyining0130/c-room
@@ -47,7 +53,7 @@ Update all skills from https://github.com/wuyining0130/c-room to local
 
 ## Quick Start
 
-After installation, open Claude Code in your project directory:
+After installation, open Claude Code or Codex in your project directory:
 
 **Step 1: Build the knowledge base** (one-time setup)
 
@@ -230,7 +236,8 @@ flowchart TD
 
 ```text
 c-room/
-└── skills/
+├── skills/                       # Development version with evals and regression tests
+└── skills-release/               # Runtime-only distribution (default install source)
     ├── conventions/              # Shared conventions
     ├── coding-knowledge-init/    # Coding knowledge base init
     ├── prd-draft/                # PRD draft generation
@@ -242,13 +249,21 @@ c-room/
     └── tapd-sync/                # TAPD sync
 ```
 
+Maintainers can run `bash install.sh --dev` for Claude Code or `bash install.sh --codex --dev` for Codex to symlink the full `skills/` development tree. Regular users do not need this mode.
+
+After changing the development version, run `bash scripts/build-release.sh` to regenerate the distribution. The script removes stale files and verifies that evals, test scripts, and `.DS_Store` files are excluded.
+
 ## Uninstall
 
 ```bash
+# Remove C-ROOM skills from Claude Code
 git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/uninstall.sh && rm -rf /tmp/c-room
+
+# Remove C-ROOM skills from Codex
+git clone https://github.com/wuyining0130/c-room.git /tmp/c-room && bash /tmp/c-room/uninstall.sh --codex && rm -rf /tmp/c-room
 ```
 
-Or say in Claude Code:
+Or say in Claude Code or Codex:
 
 ```
 Remove all skills installed by c-room

@@ -2,16 +2,29 @@
 set -euo pipefail
 
 # c-room installer
-# Copies all skills to ~/.claude/skills/
-# Use --dev to create symlinks instead (changes take effect immediately)
+# Normal installs copy the clean distribution from skills-release/.
+# Use --dev to link the development version in skills/ (including eval assets).
 
 DEV_MODE=false
-if [ "${1:-}" = "--dev" ]; then
-    DEV_MODE=true
-fi
+PLATFORM="claude"
+for arg in "$@"; do
+    case "$arg" in
+        --dev) DEV_MODE=true ;;
+        --codex) PLATFORM="codex" ;;
+        *) echo "Error: unknown option: $arg" >&2; exit 1 ;;
+    esac
+done
 
-SKILLS_DIR="${HOME}/.claude/skills"
-REPO_SKILLS_DIR="$(cd "$(dirname "$0")" && pwd)/skills"
+if [ "$PLATFORM" = "codex" ]; then
+    SKILLS_DIR="${CODEX_HOME:-${HOME}/.codex}/skills"
+else
+    SKILLS_DIR="${HOME}/.claude/skills"
+fi
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+REPO_SKILLS_DIR="${REPO_ROOT}/skills-release"
+if [ "$DEV_MODE" = true ]; then
+    REPO_SKILLS_DIR="${REPO_ROOT}/skills"
+fi
 
 # Support remote one-liner: curl | bash
 if [ ! -d "$REPO_SKILLS_DIR" ]; then
@@ -22,8 +35,8 @@ if [ ! -d "$REPO_SKILLS_DIR" ]; then
     TMPDIR=$(mktemp -d)
     trap 'rm -rf "$TMPDIR"' EXIT
     echo "Cloning c-room..."
-    git clone --depth 1 https://github.com/anthropics/c-room.git "$TMPDIR" 2>/dev/null
-    REPO_SKILLS_DIR="$TMPDIR/skills"
+    git clone --depth 1 https://github.com/wuyining0130/c-room.git "$TMPDIR" 2>/dev/null
+    REPO_SKILLS_DIR="$TMPDIR/skills-release"
 fi
 
 mkdir -p "$SKILLS_DIR"
@@ -48,5 +61,5 @@ if [ "$DEV_MODE" = true ]; then
     echo "Changes in skills/ will take effect immediately."
 else
     echo "Done! Installed ${count} skills to ${SKILLS_DIR}"
-    echo "Use /skill-name in Claude Code to invoke them."
+    echo "Skills are ready for ${PLATFORM}."
 fi
