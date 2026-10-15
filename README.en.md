@@ -111,7 +111,7 @@ Open Claude Code in this directory and run in order:
 
 ```
 my-project/                              # Project Studio root
-├── CLAUDE.md                            # AI coding guidelines (auto-generated)
+├── AGENTS.md                            # Codex; Claude Code uses CLAUDE.md
 │
 ├── coding-knowledge/                    # coding-knowledge-init output
 │   ├── INDEX.md                         # Top-level entry (with intent routing table)
@@ -128,28 +128,20 @@ my-project/                              # Project Studio root
 │
 └── requirements/                        # Each requirement gets its own directory
     ├── batch-export/
-    │   ├── prd-draft.md                 # prd-draft output: structured PRD
-    │   ├── prd-context.md               # prd-draft output: cross-session requirement memory
-    │   ├── review/                      # prd-review output
-    │   │   ├── review-summary.md
-    │   │   ├── feature-list.md
-    │   │   ├── business-flow.md
-    │   │   └── ...
-    │   ├── prototype/                   # proto-gen output
-    │   │   ├── index.html
-    │   │   ├── list.html
-    │   │   ├── detail.html
-    │   │   └── ...
-    │   ├── tech-design.md               # tech-design output: API design, DDL, task breakdown
-    │   ├── code-gen-report.md           # code-gen output: what files were generated/modified
-    │   └── code-review/                 # code-review output
-    │       ├── review-summary.md
-    │       └── {repo-name}.md
+    │   ├── batch-export需求文档.md
+    │   ├── batch-export需求上下文.md
+    │   ├── batch-export需求评审报告.md
+    │   ├── batch-export交互原型.html
+    │   ├── batch-export技术方案.md
+    │   ├── batch-export代码生成报告.md
+    │   └── batch-export代码审查报告.md
     └── access-control/
         └── ...                          # Same structure
 ```
 
 Knowledge base is built once. Every subsequent requirement auto-loads project context — no need to re-explain background.
+
+New requirement artifacts use the requirement name followed directly by a Chinese artifact suffix, as shown above. Review reports, code review reports, and the single-file prototype live directly in the requirement directory. Explicit paths take precedence; existing legacy files retain their paths. Codex generates or updates AGENTS.md, while Claude Code uses CLAUDE.md; existing guidance is preserved and only the relevant section is updated. Text-only maintenance does not bump the business version; business changes retain plan confirmation and version tracking. Full report templates are loaded from each skill’s references/ directory when needed. Without coding-knowledge, tech-design inspects current source code in read-only mode.
 
 ### Product & Engineering Collaboration
 

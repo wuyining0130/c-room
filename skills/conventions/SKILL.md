@@ -11,9 +11,7 @@ description: >-
 
 ## Purpose
 
-这是整套 AI 辅助需求-开发工作流的"宪法"——集中定义所有 skill 共享的约定，确保整条流水线的输入输出能正确对接。
-
-各 skill 不再各自定义这些规范，而是引用本 skill。如果约定需要调整，改这一个地方就行。
+定义需求、原型、技术方案、代码生成与审查共用的目录、来源优先级和版本约定。
 
 ## 工作流全景
 
@@ -156,32 +154,54 @@ coding-knowledge/
 
 ## 5. requirements/{模块名}/ 目录规范
 
-每个业务模块（需求）在项目根目录下的 `requirements/` 中拥有独立目录。模块名由 prd-draft 在澄清阶段与用户确认，也可以理解为需求名称。
+每个需求在 `requirements/` 下拥有独立目录，模块名即已确认的需求名称。新建产物按以下结构输出；已有文件路径按第 5.1 节兼容解析。
 
-```
+```text
 {project_root}/
-├── coding-knowledge/                 # coding-knowledge-init 产出（第零步）
+├── coding-knowledge/                         # 编码知识库
 └── requirements/
-    └── {模块名}/                     # 如"知识管理"、"FAQ管理"
-        ├── prd-draft.md              # prd-draft 产出
-        ├── prd-context.md            # 需求决策基线（prd-draft 自动维护）
-        ├── review/                   # prd-review 产出
-        │   ├── review-summary.md     # 唯一必需报告，完整汇总所有发现
-        │   └── {检查维度}.md          # 可选；内容较多时拆分
-        ├── prototype/               # proto-gen 产出
-        │   └── {模块名}.html          # 单文件自包含原型
-        ├── tech-design.md            # tech-design 产出
-        ├── code-gen-report.md        # code-gen 产出
-        ├── tapd-backup/              # tapd-sync 本地运行时备份（建议加入 .gitignore）
-        │   ├── {story_id}-{timestamp}.json
-        │   └── {story_id}-{timestamp}-preview.html
-        └── code-review/              # code-review 产出
-            ├── review-summary.md     # 总览报告
-            └── {仓库名}.md           # 按仓库的详细报告
+    └── {模块名}/
+        ├── {模块名}需求文档.md
+        ├── {模块名}需求上下文.md
+        ├── {模块名}需求评审报告.md             # 唯一必需的需求评审报告
+        ├── {模块名}需求评审{检查维度}.md       # 可选
+        ├── {模块名}交互原型.html               # 单文件自包含原型
+        ├── {模块名}技术方案.md
+        ├── {模块名}代码生成报告.md
+        ├── {模块名}代码审查报告.md
+        ├── {模块名}代码审查{仓库名}.md         # 多仓库审查时按需生成
+        └── tapd-backup/                       # TAPD 本地运行时备份
+            ├── {story_id}-{timestamp}.json
+            └── {story_id}-{timestamp}-preview.html
 ```
+
+### 5.1 产物命名与旧文件兼容
+
+所有新建的需求级文档和原型统一使用“需求名称中文产物类型.扩展名”，名称与类型直接连写，不添加括号、空格或短杠。下表路径相对于 `requirements/{模块名}/`；新建评审报告、代码审查报告及交互原型直接放在该需求目录，不再创建 `review/`、`code-review/` 或 `prototype/` 子目录。`{模块名}` 即已确认的需求名称。独立 Agent PRD 使用 `{需求名称}`，优先取用户确认名称，其次取已有文档的需求名称，不使用通用父目录名代替；名称未明确时在澄清环节确定。输出位置仍遵循 agent-prd 或用户指定路径。
+
+| 产物 | 新建时的标准相对路径 | 兼容查找的旧路径 |
+|---|---|---|
+| PRD | `{模块名}需求文档.md` | `prd-draft.md` |
+| 需求上下文 | `{模块名}需求上下文.md` | `prd-context.md` |
+| 需求评审总报告 | `{模块名}需求评审报告.md` | `review/{模块名}需求评审报告.md`、`review/review-summary.md` |
+| 需求评审分维度报告（可选） | `{模块名}需求评审{检查维度}.md` | `review/{模块名}需求评审{检查维度}.md`、`review/{检查维度}.md` |
+| 交互原型 | `{模块名}交互原型.html` | `prototype/{模块名}交互原型.html`、`prototype/{模块名}.html` |
+| 技术方案 | `{模块名}技术方案.md` | `tech-design.md` |
+| 代码生成报告 | `{模块名}代码生成报告.md` | `code-gen-report.md` |
+| 代码审查总报告 | `{模块名}代码审查报告.md` | `code-review/{模块名}代码审查报告.md`、`code-review/review-summary.md` |
+| 代码审查分仓库报告（可选） | `{模块名}代码审查{仓库名}.md` | `code-review/{模块名}代码审查{仓库名}.md`、`code-review/{仓库名}.md` |
+| Agent PRD | `{需求名称}Agent需求文档.md` | `agent-prd.md` |
+
+路径解析与维护规则：
+
+1. 用户明确指定路径优先；否则先查标准名称，再查对应旧路径，同时兼容此前的“需求名称（产物类型）.扩展名”和“需求名称-产物类型.扩展名”。日期用于历史报告时直接接在产物类型后，如 `需求名称代码审查报告2026-09-20.md`，日期内部保留短杠。
+2. 下游查找 PRD 时同时识别普通需求文档与 Agent需求文档；已知 `mode: agent-prd` 时使用后者，不因文件名或目录变化漏过已有文档修改门禁和评审门禁，不改变文档业务结构。
+3. 仅存在旧文件时沿用实际路径，不自动重命名、移动或另建同用途副本；尚未生成的其他产物使用标准路径。用户明确要求迁移时才重命名并同步引用，不因迁移改变业务版本。
+4. 多个候选并存时按用户指定路径、已确认来源和需求上下文确定权威文件；仍无法确定或内容冲突时请用户选择，不能仅凭文件名或修改时间覆盖。
+5. 新建／修改判定、PRD 守护、评审门禁、原型选择均使用解析后的实际路径。来源记录、版本、HTML 来源注释和链接记录实际读取文件；不得将历史路径虚写为新路径。业务版本与修改流程不因命名变化而改变。
+6. 本约定只调整需求级交付产物的名称与上述子目录前缀。skill 名称、内部模板资源名、`coding-knowledge/` 知识库结构及 TAPD 运行时备份格式保持原约定。项目指引中的命名条款应同步覆盖标准名称和旧路径兼容规则。
 
 ---
-
 ## 6. 各 skill 输入/输出路径汇总
 
 ### 第零步
@@ -194,17 +214,17 @@ coding-knowledge/
 
 | Skill | 输入 | 输出 |
 |-------|------|------|
-| prd-draft | 用户需求描述 + `coding-knowledge/`(如有) | `requirements/{模块名}/prd-draft.md` + `prd-context.md` |
-| prd-review | `requirements/{模块名}/prd-draft.md` + `prd-context.md` + `coding-knowledge/`(如有) | `requirements/{模块名}/review/review-summary.md` |
-| proto-gen | `requirements/{模块名}/prd-draft.md` + 前端代码 | `requirements/{模块名}/prototype/{模块名}.html` |
+| prd-draft | 用户需求描述 + `coding-knowledge/`(如有) | `requirements/{模块名}/{模块名}需求文档.md` + `{模块名}需求上下文.md` |
+| prd-review | `requirements/{模块名}/{模块名}需求文档.md` + `{模块名}需求上下文.md` + `coding-knowledge/`(如有) | `requirements/{模块名}/{模块名}需求评审报告.md` |
+| proto-gen | `requirements/{模块名}/{模块名}需求文档.md` + 前端代码 | `requirements/{模块名}/{模块名}交互原型.html` |
 
 ### 研发阶段
 
 | Skill | 输入 | 输出 |
 |-------|------|------|
-| tech-design | `prd-draft.md` + `prototype/` + `coding-knowledge/` + 后端代码 | `requirements/{模块名}/tech-design.md` |
-| code-gen | `tech-design.md` + `prd-draft.md` + `prototype/` + `coding-knowledge/` + 源码仓库 | 代码变更 + `requirements/{模块名}/code-gen-report.md` |
-| code-review | 代码变更 + `tech-design.md` + `prd-draft.md` + `coding-knowledge/` | `requirements/{模块名}/code-review/` |
+| tech-design | `{模块名}需求文档.md` + `{模块名}交互原型.html` + `coding-knowledge/` + 后端代码 | `requirements/{模块名}/{模块名}技术方案.md` |
+| code-gen | `{模块名}技术方案.md` + `{模块名}需求文档.md` + `{模块名}交互原型.html` + `coding-knowledge/` + 源码仓库 | 代码变更 + `requirements/{模块名}/{模块名}代码生成报告.md` |
+| code-review | 代码变更 + `{模块名}技术方案.md` + `{模块名}需求文档.md` + `coding-knowledge/` | `requirements/{模块名}/{模块名}代码审查报告.md`，按需附分仓库报告 |
 
 ### 辅助工具
 
@@ -217,6 +237,8 @@ coding-knowledge/
 ## 7. coding-knowledge 在研发阶段的统一使用策略
 
 研发阶段三个 skill（tech-design、code-gen、code-review）对 coding-knowledge 的使用策略一脉相承：
+
+有知识库时按以下层级读取相关文件；没有知识库或索引缺失时，直接只读检查当前源码与项目配置，不要求先初始化完整知识库。描述系统现状须有源码依据，无法核实的内容明确标注。
 
 ### 三层读取策略（三个 skill 统一）
 
@@ -269,7 +291,7 @@ coding-knowledge/
 
 ## 8. PRD 版本管理
 
-prd-draft 在 YAML frontmatter 中标注 `version: "draft-v1"`。每次修改必须递增版本并追加变更记录；prd-review 和 tech-design 必须记录所读取的 PRD 版本。
+prd-draft 在 YAML frontmatter 中标注 `version: "draft-v1"`。业务内容变更须先确认修改计划，再递增版本、追加变更记录并同步需求上下文；错别字、排版、失效链接等不改变业务含义的维护，可按用户明确指令直接修改，无需升级业务版本、补业务变更记录或更新需求决策。阈值、枚举、权限、流程和验收口径的变化属于业务变更。prd-review 和 tech-design 记录实际读取的 PRD 版本。
 
 典型迭代流程：
 ```
@@ -311,20 +333,19 @@ prd-review、code-review 共用同一套三级分级体系：
 
 **简化路径：** 没有 `coding-knowledge/` 也能用。`prd-draft` 会正常工作，只是澄清问题会更泛化、无法自动引用现有系统信息。最小可用路径：直接运行 `prd-draft` → `prd-review` → `proto-gen`。
 
-**只用其中一个 skill：** 每个 skill 都可以独立使用，只是没有知识库时分析精度会下降。
+**只用其中一个 skill：** 可独立使用；缺少知识库时按任务只读检查当前源码和项目指引，无法核实的内容明确标注。
 
 ---
 
-## 10.5 CLAUDE.md 管理
+## 10.5 项目指引文件管理
 
-以下 skill 会写入或更新项目根目录的 CLAUDE.md：
+按当前运行的软件确定目标文件：Codex 使用项目根目录的 `AGENTS.md`，Claude Code 使用 `CLAUDE.md`。以运行环境为依据，不因另一个文件已存在而选错目标；环境不明确时再询问。
 
-| Skill | 写入内容 | 触发条件 |
-|-------|---------|---------|
-| coding-knowledge-init | AI Coding 知识库使用指引 | 知识库生成/更新后 |
+| Skill | 管理的章节 | 触发时机 |
+|---|---|---|
+| coding-knowledge-init | AI Coding 知识库 | 知识库生成或更新后 |
 | prd-draft | PRD 文件守护规则 | 首次生成 PRD 后 |
 
-写入规则：
-- 各 skill 只管理自己的 section，不删除其他 skill 写入的内容
-- 用 `## {Section 标题}` 作为 section 边界标识
-- 写入前先 Read CLAUDE.md 检查是否已有该 section，有则更新，无则追加
+- 目标文件不存在时创建；存在时先读取，已有等效规则则沿用，缺失时新增本 skill 对应章节，过期时局部更新。
+- 只管理本 skill 负责的内容，保留用户角色、授权边界及其他章节；不自动修改另一款软件的指引文件。
+- 指引中的路径和 PRD 修改规则遵循第 5.1 节与第 8 节。mini 模式是否写入守护规则沿用 prd-draft 的规定。

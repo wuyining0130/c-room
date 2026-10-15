@@ -11,13 +11,7 @@ description: >-
 
 ## Purpose
 
-要让 AI 像顶级程序员一样在一个业务领域内编写代码，它需要掌握三层知识：
-
-1. **基础技术层** — 公司的技术栈规范、中间件、架构模式、CI/CD 流程等"水下冰山"，这些知识不写在代码里但深刻影响每一行代码的写法
-2. **业务层** — 整体业务架构和细分业务领域的领域知识，顶级程序员不仅知道怎么写代码，还知道为什么这样写
-3. **代码仓库层** — 每个仓库的代码架构、核心调用链、数据库结构、关键符号索引，编码时能快速定位和准确修改
-
-这三层知识自下而上构建：基础技术层是通用底座，业务层建立在技术层之上提供领域语境，代码仓库层则是实际编码时的精确导航。
+扫描仓库并生成基础技术、业务、代码仓库三层知识库，支持按需读取与增量更新。
 
 ## 参考文件导航
 
@@ -377,15 +371,17 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 
 ---
 
-### Phase 5: 生成顶层 INDEX.md 与 CLAUDE.md 集成
+### Phase 5: 生成顶层 INDEX.md 与项目指引集成
 
 #### 5.1 生成顶层 INDEX.md
 
 生成 `coding-knowledge/INDEX.md`，模板见 `references/templates.md`。
 
-#### 5.2 自动生成 CLAUDE.md 知识库加载规则
+#### 5.2 更新当前软件的知识库加载指引
 
-在项目根目录创建或追加 `CLAUDE.md`（如已存在则在末尾追加知识库章节），让 Claude Code 在编码时自动使用知识库：
+读取 `../conventions/SKILL.md` 第 10.5 节，按当前软件选择目标：Codex 使用 `AGENTS.md`，Claude Code 使用 `CLAUDE.md`。目标文件不存在时创建；存在时只管理“AI Coding 知识库”章节，已有等效指引则沿用，缺失或过期时局部补充／更新。
+
+章节内容可使用以下模板；保留其他章节与用户原有授权边界，不自动修改另一款软件的文件。
 
 ```markdown
 ## AI Coding 知识库
@@ -413,13 +409,6 @@ bash scripts/batch-scan.sh /path/to/repos coding-knowledge/scan-data/
 - **业务描述必须用代码验证**：`business/` 层是产品语言，会省略查询条件、数据维度等实现细节。回答"系统现在具体怎么做的"时，必须去 `repos/` 层定位源码确认，不能只凭业务描述下结论
 - 如需更新知识库，运行 coding-knowledge-init skill
 ```
-
-**CLAUDE.md 生成规则**：
-- 如果项目根目录没有 `CLAUDE.md`，创建新文件
-- 如果已存在 `CLAUDE.md`，检查是否已有"AI Coding 知识库"章节：
-  - 有 → 替换该章节内容
-  - 无 → 在文件末尾追加
-- 不修改 `CLAUDE.md` 中的其他内容
 
 ---
 
@@ -513,7 +502,7 @@ git diff --name-only {last_scanned_commit} HEAD
 6. Phase 3.5: 三级质量校验
 7. Phase 4: 生成 knowledge-gaps.md
 8. Phase 4.5: 可用性验证（模拟编码场景）
-9. Phase 5: 生成顶层 INDEX.md + 更新 CLAUDE.md
+9. Phase 5: 生成顶层 INDEX.md + 更新当前软件的项目指引（Codex：AGENTS.md；Claude Code：CLAUDE.md）
 
 ### Example 2: 单仓库快速初始化
 
@@ -524,7 +513,7 @@ git diff --name-only {last_scanned_commit} HEAD
 2. Phase 1.1: 运行 `scan-repo.py`（无需 Agent）
 3. Phase 1.2: 直接合成全套文档
 4. Phase 2-5: 正常执行，业务层多为推断
-5. 生成 CLAUDE.md 集成规则
+5. 生成当前软件的项目指引集成规则
 
 ### Example 3: 增量更新
 
@@ -534,4 +523,4 @@ git diff --name-only {last_scanned_commit} HEAD
 1. 读取 config.yaml 和 knowledge-gaps.md
 2. 运行 git diff 确定变更范围
 3. 仅重新扫描和合成受影响的仓库和文件
-4. 更新 INDEX.md 和 CLAUDE.md
+4. 更新 INDEX.md 和当前软件的项目指引

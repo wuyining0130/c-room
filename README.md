@@ -111,7 +111,7 @@ mkdir my-project && cd my-project
 
 ```
 my-project/                              # 项目 Studio 根目录
-├── CLAUDE.md                            # AI 编码指引（自动生成）
+├── AGENTS.md                            # Codex 项目指引；Claude Code 使用 CLAUDE.md
 │
 ├── coding-knowledge/                    # coding-knowledge-init 产出
 │   ├── INDEX.md                         # 顶层入口（含意图路由表）
@@ -128,28 +128,20 @@ my-project/                              # 项目 Studio 根目录
 │
 └── requirements/                        # 每个需求独立目录
     ├── 批量导出/
-    │   ├── prd-draft.md                 # prd-draft 产出：结构化 PRD
-    │   ├── prd-context.md               # prd-draft 产出：跨会话需求记忆
-    │   ├── review/                      # prd-review 产出
-    │   │   ├── review-summary.md        #   总览报告
-    │   │   ├── 功能清单.md               #   按模块的详细检查
-    │   │   ├── 业务流程图.md             #   ...
-    │   │   └── ...
-    │   ├── prototype/                   # proto-gen 产出
-    │   │   ├── index.html               #   入口页面
-    │   │   ├── list.html                #   列表页
-    │   │   ├── detail.html              #   详情页
-    │   │   └── ...
-    │   ├── tech-design.md               # tech-design 产出：接口设计、DDL、任务拆解
-    │   ├── code-gen-report.md           # code-gen 产出：生成了哪些文件、改了哪些代码
-    │   └── code-review/                 # code-review 产出
-    │       ├── review-summary.md        #   总览报告
-    │       └── {仓库名}.md              #   按仓库的详细审查
+    │   ├── 批量导出需求文档.md
+    │   ├── 批量导出需求上下文.md
+    │   ├── 批量导出需求评审报告.md
+    │   ├── 批量导出交互原型.html
+    │   ├── 批量导出技术方案.md
+    │   ├── 批量导出代码生成报告.md
+    │   └── 批量导出代码审查报告.md
     └── 权限管理/
         └── ...                          # 同上结构
 ```
 
 知识库只需建一次，之后每个需求都会自动加载项目上下文，不用重复交代背景。
+
+新建需求产物按上述中文名称直接放在需求目录下，需求名称与产物类型连写；需求评审报告、代码审查报告和单文件原型不再新建子目录。用户指定路径优先，已有旧文件沿用实际路径。Codex 生成或更新 AGENTS.md，Claude Code 使用 CLAUDE.md，仅维护相关章节并保留既有指引。文字维护不升级业务版本，业务变更仍须确认计划并保留版本记录。完整报告模板按需从各 skill 的 references/ 读取；没有 coding-knowledge 时，tech-design 直接只读检查当前源码。
 
 ### 产品 & 研发协作
 

@@ -1,6 +1,6 @@
 # coding-knowledge-init
 
-一个 Claude Code Skill，扫描你的代码仓库，自动生成面向 AI 编码的三层专家知识库。
+一个兼容 Codex 与 Claude Code 的 Skill，扫描你的代码仓库，自动生成面向 AI 编码的三层专家知识库。
 
 装上它之后，AI 写代码时不再是"只看得见当前文件的新手"，而是"了解整个业务架构、知道每个服务职责边界、能精准定位代码的老员工"。
 
@@ -23,7 +23,7 @@ coding-knowledge/
 └── INDEX.md        ← 三层知识导航入口
 ```
 
-生成后自动配置 CLAUDE.md，AI 编码时按需加载对应层级的知识，不占多余 context。
+生成后按当前软件配置项目指引：Codex 使用 AGENTS.md，Claude Code 使用 CLAUDE.md；已有文件只更新知识库相关章节，AI 按需加载对应层级。
 
 ## 安装
 
@@ -59,9 +59,9 @@ cp -r coding-knowledge-init ~/.claude/skills/
 - **git 仓库地址** — 代码在哪里（已 clone 到本地的填本地路径，未 clone 的填 git 地址，Skill 会自动 clone）
 - **服务描述** — 一句话说明这个服务干什么（AI 理解职责边界的关键输入）
 
-### 第二步：在 Claude Code 中运行
+### 第二步：在 Codex 或 Claude Code 中运行
 
-把整理好的表格直接粘贴给 Claude Code：
+把整理好的表格直接粘贴给当前使用的软件：
 
 ```
 帮我初始化编码知识库。

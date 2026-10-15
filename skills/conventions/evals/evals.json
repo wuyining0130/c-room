@@ -1,1 +1,52 @@
-{"skill_name":"conventions","evals":[{"id":1,"prompt":"说明 C-Room 当前 PRD 标准章节和各产物路径。","expected_output":"PRD 结构与 prd-draft 一致；review-summary 与单文件原型路径唯一。","files":[],"expectations":["不包含独立需求价值或独立数据模型一级章","prd-review 输出 review/review-summary.md","proto-gen 输出 prototype/{模块名}.html"]},{"id":2,"prompt":"PRD、原型、技术方案、coding-knowledge 冲突时以谁为准？","expected_output":"按信息类型处理，不使用单一全局优先级。","files":[],"expectations":["需求决策以用户/prd-context/PRD为准","系统现状以源码优先","重大冲突停止下游写入"]}]}
+{
+  "skill_name": "conventions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "说明 C-Room 当前 PRD 标准章节和各产物路径。",
+      "expected_output": "PRD 结构与 prd-draft 一致；中文命名的报告和单文件原型直接位于需求目录。",
+      "files": [],
+      "expectations": [
+        "不包含独立需求价值或独立数据模型一级章",
+        "prd-review 输出 {模块名}需求评审报告.md",
+        "proto-gen 输出 {模块名}交互原型.html"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "PRD、原型、技术方案、coding-knowledge 冲突时以谁为准？",
+      "expected_output": "按信息类型处理，不使用单一全局优先级。",
+      "files": [],
+      "expectations": [
+        "需求决策以用户/prd-context/PRD为准",
+        "系统现状以源码优先",
+        "重大冲突停止下游写入"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "分别说明在 Codex 与 Claude Code 中首次生成项目指引时使用哪个文件，已有其他指引章节应如何处理。",
+      "expected_output": "按当前软件选择文件并保留用户已有指引。",
+      "files": [],
+      "expectations": [
+        "Codex 使用 AGENTS.md",
+        "Claude Code 使用 CLAUDE.md",
+        "目标文件不存在时创建",
+        "已有等效规则沿用，过期章节局部更新",
+        "不自动修改另一软件的指引文件"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "需求目录中只有 review/review-summary.md 和 prototype/旧需求.html，继续更新对应已有产物。",
+      "expected_output": "解析兼容旧路径并沿用，不因新命名创建重复文件。",
+      "files": [],
+      "expectations": [
+        "识别历史文件路径",
+        "沿用已有文件不自动迁移",
+        "来源记录实际读取路径",
+        "有多个冲突候选且无法确定权威版本时才询问"
+      ]
+    }
+  ]
+}

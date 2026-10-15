@@ -7,11 +7,13 @@ description: >-
   用户粘贴了 tapd.cn 链接并提到上传/同步/更新文档时，也应该触发。
 ---
 
+## 产物路径解析
+
+在文件查找、新建／修改判定和质量门禁之前，先读取 `../conventions/SKILL.md` 第 5.1 节。新建产物使用中文标准名称，评审报告、代码审查报告与交互原型直接放在 `requirements/{模块名}/` 下；既有文件沿用解析后的实际路径。正文和模板中的标准路径均受该兼容规则约束，下游引用记录实际读取文件及版本。
+
 ## Purpose
 
-PRD、技术方案等文档在本地用 Markdown 编写后，需要同步到 TAPD 需求单供团队协作。手动复制粘贴会丢失格式，而且每次更新都要重复操作。
-
-这个 skill 把"读取 md → 转 HTML → 调 TAPD API 更新描述"封装成一条命令，用户只需提供文件路径和 TAPD 链接。
+将本地 Markdown 转为 HTML，预览、备份并经用户确认后更新 TAPD 需求单描述。
 
 ## 前置条件
 
@@ -28,7 +30,7 @@ PRD、技术方案等文档在本地用 Markdown 编写后，需要同步到 TAP
 ### Step 1: 收集输入
 
 需要两个信息：
-- **Markdown 文件路径**：要上传的文档（如 `prd-draft.md`、`tech-design.md`）
+- **Markdown 文件路径**：要上传的文档（如 `{模块名}需求文档.md`、`{模块名}技术方案.md`）
 - **TAPD 需求单 URL**：用户粘贴的 TAPD 链接
 
 支持的 TAPD URL 格式：
@@ -110,13 +112,3 @@ Playwright 用于本地高清 Mermaid 渲染（可选）。未安装或未传入
 ## 与其他 skill 的关系
 
 通常在 prd-draft 或 tech-design 生成文档后使用，将本地 Markdown 产出物同步到 TAPD 供团队查看。
-
-## Common Pitfalls
-
-**忘记确认覆盖**：上传会替换需求单现有描述。脚本默认提示确认并说明并发竞态；仅在用户已明确接受该风险时使用 `--yes --accept-concurrency-risk`。
-
-**未保存原描述**：上传前必须保存本地 JSON 备份；即使 TAPD 有历史记录，也不能把远端历史作为唯一回滚手段。
-
-**URL 解析失败**：部分 TAPD URL 格式中 workspace_id 不在路径里（如 `dialog_preview_id` 格式），需要用 `--workspace-id` 手动指定。
-
-**Mermaid 未渲染**：默认不会联网下载 Mermaid.js。需要图片时，安装 Playwright 和 Chromium，并用 `--mermaid-js` 指向本地 `mermaid.min.js`；只有确认可向第三方发送源码时才使用 `--allow-remote-mermaid`。
